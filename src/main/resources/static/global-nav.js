@@ -45,17 +45,19 @@
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 16px;
-      width: 240px;
+      width: 260px;
+      max-height: 480px;
+      overflow-y: auto;
       padding: 10px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-      font-family: 'Inter', sans-serif;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     .c-portal-dropdown-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
+      padding: 9px 12px;
       color: #334155;
       text-decoration: none;
       font-size: 13px;
@@ -83,15 +85,22 @@
     </div>
 
     <div class="c-portal-dropdown" id="portalDropdownMenu">
-      <div style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; padding:6px 12px 4px 12px;">Navigate Portals</div>
+      <div style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; padding:6px 12px 4px 12px;">Main Portals</div>
       <a href="homepage_design.html" class="c-portal-dropdown-item">🏠 Public Homepage</a>
       <a href="portal.html" class="c-portal-dropdown-item">🧭 Role Selection Hub</a>
-      <a href="doctor_portal_design.html" class="c-portal-dropdown-item">🩺 Doctor EHR Portal</a>
-      <a href="patient_portal_design.html" class="c-portal-dropdown-item">🏥 Patient Portal</a>
-      <a href="admin_portal_design.html" class="c-portal-dropdown-item">📊 Admin Panel</a>
-      <a href="staff_portal_design.html" class="c-portal-dropdown-item">💊 Staff & Pharmacy</a>
+      
+      <div style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; padding:8px 12px 4px 12px; border-top:1px solid #f1f5f9; margin-top:4px;">Patient & Kiosk Services</div>
+      <a href="generate-token.html" class="c-portal-dropdown-item" style="color:#2563eb; font-weight:600;">⚡ Instant Token Generator</a>
+      <a href="queue-checkin.html" class="c-portal-dropdown-item">📱 Mobile QR Check-In</a>
+      <a href="patient_portal_design.html" class="c-portal-dropdown-item">🏥 Patient Health Portal</a>
+      <a href="display.html" class="c-portal-dropdown-item">📺 Live Waiting Board TV</a>
+
+      <div style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; padding:8px 12px 4px 12px; border-top:1px solid #f1f5f9; margin-top:4px;">Clinical & Hospital Staff</div>
+      <a href="doctor_portal_design.html" class="c-portal-dropdown-item">🩺 Doctor Consultation Desk</a>
+      <a href="staff_portal_design.html" class="c-portal-dropdown-item">💊 Staff Reception & Pharmacy</a>
+      <a href="admin_portal_design.html" class="c-portal-dropdown-item">📊 Admin Governance Panel</a>
+      <a href="telehealth-room.html" class="c-portal-dropdown-item">📹 Telehealth Virtual Room</a>
       <a href="register.html" class="c-portal-dropdown-item">📝 Doctor Registration</a>
-      <a href="display.html" class="c-portal-dropdown-item" style="color:#2563eb; font-weight:600;">📺 Live Queue Board</a>
     </div>
   `;
 
