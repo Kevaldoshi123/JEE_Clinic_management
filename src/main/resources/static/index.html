@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Clinic - Welcome</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Leaflet OpenStreetMap CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 14px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    .navbar {
+      height: 80px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 80px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (max-width: 992px) {
+      .navbar { padding: 0 24px; }
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background-color: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .nav-link:hover {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-outline {
+      border: 1px solid var(--border);
+      background-color: transparent;
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--background);
+      border-color: var(--text-muted);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-emergency {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+    }
+
+    .btn-emergency:hover {
+      background-color: #DC2626;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 80px 80px 120px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 60px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 48px 24px;
+        text-align: center;
+      }
+    }
+
+    .hero-text h1 {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin-bottom: 24px;
+    }
+
+    .hero-text p {
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+    }
+
+    @media (max-width: 992px) {
+      .hero-ctas { justify-content: center; }
+    }
+
+    .hero-illustration {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-illustration svg {
+      width: 100%;
+      max-width: 480px;
+      height: auto;
+    }
+
+    /* Large Action Cards Section */
+    .section-cards {
+      padding: 0 80px 80px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+      .section-cards { padding: 0 24px 60px; }
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .action-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+      transition: var(--transition);
+    }
+
+    .action-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+
+    .action-card-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: var(--transition);
+    }
+
+    .action-card:hover .action-card-icon {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .action-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .action-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Core Page Sections Styling */
+    .section-container {
+      padding: 100px 80px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+      .section-container { padding: 60px 24px; }
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 60px;
+    }
+
+    .section-header h2 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    /* Live Queue Waiting Board */
+    .waiting-board {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .board-header {
+      background-color: var(--primary);
+      color: white;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .board-header h3 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .board-body {
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .board-body { grid-template-columns: 1fr; padding: 24px; }
+    }
+
+    .token-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+      padding-right: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .token-display { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+    }
+
+    .token-number {
+      font-size: 80px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .token-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .board-stats {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-weight: 600;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-top: 24px;
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      background-color: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background-color: var(--success);
+      width: 75%;
+      border-radius: 4px;
+    }
+
+    /* Registration Wizard */
+    .wizard-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      max-width: 720px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .wizard-steps {
+      display: flex;
+      background-color: rgba(37, 99, 235, 0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wizard-step {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-right: 1px solid var(--border);
+    }
+
+    .wizard-step.active {
+      color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.06);
+    }
+
+    .wizard-step:last-child {
+      border-right: none;
+    }
+
+    .wizard-body {
+      padding: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 0 16px;
+      font-size: 15px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .wizard-footer {
+      padding: 24px 40px;
+      background-color: rgba(37, 99, 235, 0.01);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Doctor Grid Card */
+    .doctor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+    }
+
+    .doctor-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    .doctor-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+
+    .doctor-avatar-wrapper {
+      height: 220px;
+      background-color: rgba(37, 99, 235, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      color: var(--primary);
+    }
+
+    .doctor-info {
+      padding: 24px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .doctor-info h4 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .doctor-spec {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .doctor-experience {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .doctor-rating {
+      color: var(--warning);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    /* Feedback Cards & Form */
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .feedback-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feedback-user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feedback-user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .feedback-rating {
+      color: var(--warning);
+      font-size: 14px;
+    }
+
+    .feedback-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .feedback-form {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Footer */
+    .footer {
+      background-color: #0F172A;
+      color: #94A3B8;
+      padding: 80px 80px 40px;
+    }
+
+    @media (max-width: 992px) {
+      .footer { padding: 48px 24px 32px; }
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 40px;
+      margin-bottom: 60px;
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-col h4 {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .footer-col p, .footer-col a {
+      font-size: 14px;
+      color: #94A3B8;
+      text-decoration: none;
+      line-height: 1.8;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .footer-col a:hover {
+      color: white;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .social-link {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #1E293B;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .social-link:hover {
+      background-color: var(--primary);
+    }
+
+    .map-placeholder {
+      height: 160px;
+      background-color: #1E293B;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #1E293B;
+      padding-top: 32px;
+      text-align: center;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <a href="#" class="logo-container">
+      <div class="logo-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+      <span>Care Core Clinic</span>
+    </a>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#doctors" class="nav-link">Doctors</a>
+      <a href="#queue" class="nav-link">Live Queue</a>
+      <a href="#feedback" class="nav-link">Feedback</a>
+    </div>
+    <div class="nav-actions">
+      <a href="portal.html" class="btn btn-outline">Portal Login</a>
+      <a href="tel:108" class="btn btn-emergency"><i class="bi bi-telephone-fill"></i> Emergency: 108</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-text">
+      <h1>Welcome to Care Core Clinic</h1>
+      <p>Streamline your healthcare visit. Register details, check live patient waiting board, and schedule consultations with our certified specialist doctors entirely online.</p>
+      <div class="hero-ctas">
+        <a href="#register" class="btn btn-primary btn-lg">Book Appointment</a>
+        <a href="#queue" class="btn btn-outline btn-lg">Check Queue Status</a>
+      </div>
+    </div>
+    <div class="hero-illustration">
+      <!-- Minimalist modern illustration SVG -->
+      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+        <rect x="50" y="50" width="400" height="300" rx="20" fill="#eff6ff" />
+        <circle cx="250" cy="200" r="80" fill="#dbeafe" />
+        <path d="M210 200 H290 M250 160 V240" stroke="#2563eb" stroke-width="16" stroke-linecap="round" />
+        <circle cx="100" cy="120" r="20" fill="#3b82f6" opacity="0.2" />
+        <circle cx="400" cy="280" r="15" fill="#10b981" opacity="0.2" />
+        <rect x="300" y="80" width="80" height="40" rx="8" fill="#10b981" />
+        <text x="312" y="105" fill="white" font-family="sans-serif" font-weight="bold" font-size="12">LIVE QUEUE</text>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Quick Action Navigation Cards -->
+  <section class="section-cards">
+    <div class="cards-grid">
+      <a href="#register" class="action-card">
+        <div class="action-card-icon"><i class="bi bi-user-plus"></i></div>
+        <h3>Patient Registration</h3>
+        <p>Register as a new patient and secure your diagnostic slot within minutes.</p>
+      </a>
+      <a href="#register" class="action-card">
+        <div class="action-card-icon"><i class="bi bi-calendar"></i></div>
+        <h3>Book Appointment</h3>
+        <p>Schedule a specific date and time slot with our certified specialist doctors.</p>
+      </a>
+      <a href="#queue" class="action-card">
+        <div class="action-card-icon"><i class="bi bi-clock"></i></div>
+        <h3>Live Queue Board</h3>
+        <p>Monitor token processing statuses and estimated wait times remotely.</p>
+      </a>
+      <a href="#feedback" class="action-card">
+        <div class="action-card-icon"><i class="bi bi-chat-text"></i></div>
+        <h3>Clinic Feedback</h3>
+        <p>Submit reviews and comments about your consultation experience.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- Live Queue Section -->
+  <section class="section-container" id="queue" style="background-color: rgba(37, 99, 235, 0.01);">
+    <div class="section-header">
+      <h2>Live Queue Monitor</h2>
+      <p>Real-time updates on active clinic appointments. Refreshing automatically.</p>
+    </div>
+    
+    <div class="waiting-board">
+      <div class="board-header">
+        <h3>General Cardiology Board</h3>
+        <span class="badge badge-success" style="background-color: rgba(255,255,255,0.2); color: white;">Active Now</span>
+      </div>
+      <div class="board-body">
+        <div class="token-display">
+          <div class="token-number">#024</div>
+          <div class="token-label">Now Serving</div>
+        </div>
+        <div class="board-stats">
+          <div class="stat-item">
+            <span class="stat-label">Handling Doctor:</span>
+            <span class="stat-value">Dr. Sakshi Patel</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Estimated Wait Time:</span>
+            <span class="stat-value">~15 Minutes</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Patients Waiting:</span>
+            <span class="stat-value">6 Patients</span>
+          </div>
+          <div class="progress-container">
+            <div class="stat-item" style="margin-bottom: 6px; font-size:12px;">
+              <span class="stat-label">Daily Capacity Processed</span>
+              <span class="stat-value">75%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Patient Registration Wizard -->
+  <section class="section-container" id="register">
+    <div class="section-header">
+      <h2>Patient Appointment Wizard</h2>
+      <p>Complete the 3-step form to register and reserve your consultation slot.</p>
+    </div>
+
+    <div class="wizard-card">
+      <div class="wizard-steps">
+        <div class="wizard-step active" id="step-ind-1" onclick="goToStep(1)" style="cursor: pointer;">1. Personal Info</div>
+        <div class="wizard-step" id="step-ind-2" onclick="goToStep(2)" style="cursor: pointer;">2. Medical Details</div>
+        <div class="wizard-step" id="step-ind-3" onclick="goToStep(3)" style="cursor: pointer;">3. Doctor & Time</div>
+      </div>
+      <div class="wizard-body">
+        
+        <!-- Step 1 Content -->
+        <div id="step-content-1">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="wiz-name" class="form-input" placeholder="Enter your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact Number *</label>
+            <input type="tel" id="wiz-phone" class="form-input" placeholder="Enter 10-digit contact number">
+          </div>
+        </div>
+
+        <!-- Step 2 Content -->
+        <div id="step-content-2" class="hidden">
+          <div class="form-group">
+            <label class="form-label">Chief Medical Complaint / Symptoms *</label>
+            <input type="text" id="wiz-complaint" class="form-input" placeholder="e.g., Chest pain, Fever, Routine Checkup">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Known Allergies / Medical History</label>
+            <input type="text" id="wiz-history" class="form-input" placeholder="e.g., Penicillin allergy, Diabetes, Hypertension">
+          </div>
+        </div>
+
+        <!-- Step 3 Content -->
+        <div id="step-content-3" class="hidden">
+          <div class="form-group">
+            <label class="form-label">Select Specialist Doctor *</label>
+            <select id="wiz-doctor" class="form-input">
+              <option value="">Choose Specialist Doctor...</option>
+              <option value="1">Dr. Rajani Shah (Dermatology Specialist)</option>
+              <option value="2">Dr. Keshav Kumar (Senior Cardiologist)</option>
+              <option value="3">Dr. Amit Sharma (General Physician)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Preferred Time Slot *</label>
+            <div class="time-slot-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+              <button type="button" class="btn btn-outline slot-btn" onclick="selectSlot('09:30 AM', this)" style="padding:0.4rem 0.8rem; font-size:0.85rem;">09:30 AM</button>
+              <button type="button" class="btn btn-outline slot-btn" onclick="selectSlot('10:30 AM', this)" style="padding:0.4rem 0.8rem; font-size:0.85rem;">10:30 AM</button>
+              <button type="button" class="btn btn-outline slot-btn" onclick="selectSlot('11:30 AM', this)" style="padding:0.4rem 0.8rem; font-size:0.85rem;">11:30 AM</button>
+              <button type="button" class="btn btn-outline slot-btn" onclick="selectSlot('02:00 PM', this)" style="padding:0.4rem 0.8rem; font-size:0.85rem;">02:00 PM</button>
+              <button type="button" class="btn btn-outline slot-btn" onclick="selectSlot('04:00 PM', this)" style="padding:0.4rem 0.8rem; font-size:0.85rem;">04:00 PM</button>
+            </div>
+            <input type="hidden" id="wiz-time" value="10:30 AM">
+          </div>
+        </div>
+
+      </div>
+      <div class="wizard-footer">
+        <button class="btn btn-outline hidden" id="prev-btn">Previous</button>
+        <div style="flex-grow: 1;"></div>
+        <button class="btn btn-primary" id="next-btn">Next Step</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Doctor Cards Grid -->
+  <section class="section-container" id="doctors" style="background-color: rgba(37, 99, 235, 0.01);">
+    <div class="section-header">
+      <h2>Meet Our Specialists</h2>
+      <p>Certified clinical practitioners dedicated to providing quality medical treatments.</p>
+    </div>
+
+    <div class="doctor-grid">
+      
+      <div class="doctor-card">
+        <div class="doctor-avatar-wrapper">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <div class="doctor-info">
+          <span class="doctor-spec">Cardiology Specialist</span>
+          <h4>Dr. Sakshi Patel</h4>
+          <p class="doctor-experience">12 Years Experience</p>
+          <div class="doctor-rating">
+            <i class="bi bi-star-fill"></i> 4.9 <span style="color: var(--text-muted);">(140 reviews)</span>
+          </div>
+          <a href="#register" class="btn btn-outline" style="margin-top: 16px; justify-content: center;">Book Consultation</a>
+        </div>
+      </div>
+
+      <div class="doctor-card">
+        <div class="doctor-avatar-wrapper" style="color: var(--success);">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <div class="doctor-info">
+          <span class="doctor-spec">Pediatrician Specialist</span>
+          <h4>Dr. Sen Sharma</h4>
+          <p class="doctor-experience">8 Years Experience</p>
+          <div class="doctor-rating">
+            <i class="bi bi-star-fill"></i> 4.8 <span style="color: var(--text-muted);">(95 reviews)</span>
+          </div>
+          <a href="#register" class="btn btn-outline" style="margin-top: 16px; justify-content: center;">Book Consultation</a>
+        </div>
+      </div>
+
+      <div class="doctor-card">
+        <div class="doctor-avatar-wrapper" style="color: var(--warning);">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <div class="doctor-info">
+          <span class="doctor-spec">General Physician</span>
+          <h4>Dr. Dharmik Bosamia</h4>
+          <p class="doctor-experience">6 Years Experience</p>
+          <div class="doctor-rating">
+            <i class="bi bi-star-fill"></i> 4.7 <span style="color: var(--text-muted);">(112 reviews)</span>
+          </div>
+          <a href="#register" class="btn btn-outline" style="margin-top: 16px; justify-content: center;">Book Consultation</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Feedback Review System -->
+  <section class="section-container" id="feedback">
+    <div class="section-header">
+      <h2>Patient Feedback</h2>
+      <p>Read patient reviews and submit your own feedback about clinic treatments.</p>
+    </div>
+
+    <div class="feedback-grid">
+      
+      <div class="feedback-card">
+        <div class="feedback-user-info">
+          <div class="feedback-user-avatar">KM</div>
+          <div>
+            <h5 style="font-weight:600;">Keval Mehta</h5>
+            <div class="feedback-rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          </div>
+        </div>
+        <p>"Outstanding clinical treatment experience. The online waiting board allowed me to sit comfortably and consult Dr. Patel exactly on time."</p>
+      </div>
+
+      <div class="feedback-card">
+        <div class="feedback-user-info">
+          <div class="feedback-user-avatar">SR</div>
+          <div>
+            <h5 style="font-weight:600;">Shreya Rawat</h5>
+            <div class="feedback-rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          </div>
+        </div>
+        <p>"Registering before reaching the clinic saved me tons of reception time. Highly recommend using their online registration portal."</p>
+      </div>
+
+    </div>
+
+    <!-- Feedback Submission Form -->
+    <div class="feedback-form">
+      <h3 style="margin-bottom: 24px; font-weight:600;">Submit Feedback</h3>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="fb-name" placeholder="Enter name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Consultation Rating</label>
+        <select class="form-input" id="fb-rating">
+          <option>5 Stars</option>
+          <option>4 Stars</option>
+          <option>3 Stars</option>
+          <option>2 Stars</option>
+          <option>1 Star</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comments / Reviews</label>
+        <textarea class="form-input" id="fb-comment" style="height:100px; padding:12px; resize:none;" placeholder="Write review..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="fb-submit-btn" style="width:100%; justify-content:center;">Submit Review</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-grid">
+      
+      <div class="footer-col">
+        <h4 style="display:flex; align-items:center; gap:8px;">
+          <i class="bi bi-heart-pulse-fill" style="color:var(--primary);"></i> Care Core Clinic
+        </h4>
+        <p>Clinic Address: 123 Health Care Avenue, Opp. Hospital Crossing, Mumbai, Maharashtra - 400001</p>
+        <p>Phone: +91 98765 43210</p>
+        <p>Email: contact@Care Core.org</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Access</h4>
+        <a href="#doctors">Meet Specialist Doctors</a>
+        <a href="#queue">Check Live Waiting Board</a>
+        <a href="#register">Register Appointment</a>
+        <a href="/doctor">Doctor Dashboard Portal</a>
+      </div>
+
+      <div class="footer-col" style="min-width: 280px;">
+        <h4>Location on Map</h4>
+        <div id="clinicMap" style="height: 220px; width: 100%; border-radius: 12px; border: 1px solid #334155; overflow: hidden; margin-bottom: 12px; z-index: 1;"></div>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="social-link"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="social-link"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Care Core Clinic Management Platform. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Wizard Form Logic
+    let currentStep = 1;
+    const nextBtn = document.getElementById(ext-btn');
+    const prevBtn = document.getElementById('prev-btn');
+
+    function goToStep(step) {
+      document.getElementById(`step-content-${currentStep}`).classList.add('hidden');
+      document.getElementById(`step-ind-${currentStep}`).classList.remove('active');
+      
+      currentStep = step;
+      
+      document.getElementById(`step-content-${currentStep}`).classList.remove('hidden');
+      document.getElementById(`step-ind-${currentStep}`).classList.add('active');
+
+      if (currentStep === 1) {
+        prevBtn.classList.add('hidden');
+        nextBtn.textContent = ext Step';
+      } else if (currentStep === 2) {
+        prevBtn.classList.remove('hidden');
+        nextBtn.textContent = ext Step';
+      } else if (currentStep === 3) {
+        prevBtn.classList.remove('hidden');
+        nextBtn.textContent = 'Submit Registration';
+      }
+    }
+
+    function selectSlot(timeStr, btnEl) {
+      document.querySelectorAll('.slot-btn').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline');
+      });
+      btnEl.classList.remove('btn-outline');
+      btnEl.classList.add('btn-primary');
+      document.getElementById('wiz-time').value = timeStr;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (currentStep < 3) {
+        goToStep(currentStep + 1);
+      } else {
+        const name = document.getElementById('wiz-name').value;
+        const phone = document.getElementById('wiz-phone').value;
+        if (!name || !phone) {
+          alert('Please enter your Name and Contact Number in Step 1!');
+          goToStep(1);
+          return;
+        }
+        alert(`Appointment Registered Successfully for ${name}! Time Slot: ${document.getElementById('wiz-time').value}`);
+        // Reset Form
+        document.getElementById('wiz-name').value = '';
+        document.getElementById('wiz-phone').value = '';
+        goToStep(1);
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentStep > 1) {
+        goToStep(currentStep - 1);
+      }
+    });
+
+    // Feedback Submit Alert
+    document.getElementById('fb-submit-btn').addEventListener('click', () => {
+      const name = document.getElementById('fb-name').value;
+      const comment = document.getElementById('fb-comment').value;
+      if(name && comment) {
+        alert(`Thank you for your feedback, ${name}! Your review has been logged.`);
+        document.getElementById('fb-name').value = '';
+        document.getElementById('fb-comment').value = '';
+      } else {
+        alert('Please fill out all fields before submitting.');
+      }
+    });
+    // Leaflet Interactive OpenStreetMap Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof L !== 'undefined' && document.getElementById('clinicMap')) {
+        const map = L.map('clinicMap').setView([19.0760, 72.8777], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Clinic Branches
+        const branches = [
+          { name: "Care Core General Cardiology", lat: 19.0760, lng: 72.8777, addr: "Dadar, Mumbai", doc: "Dr. Sakshi Patel" },
+          { name: "Care Core Dermatology Clinic", lat: 19.1176, lng: 72.8467, addr: "Andheri West, Mumbai", doc: "Dr. Rajani Shah" },
+          { name: "Care Core Central Pharmacy Hub", lat: 18.9402, lng: 72.8353, addr: "Marine Lines, Mumbai", doc: "Staff Operations" }
+        ];
+
+        branches.forEach(b => {
+          L.marker([b.lat, b.lng]).addTo(map)
+            .bindPopup(`<strong>${b.name}</strong><br>${b.addr}<br><em>Doctor: ${b.doc}</em>`);
+        });
+      }
+    });
+  </script>
+  <script src="ai-widget.js"></script>
+  <script src="telehealth-call.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>

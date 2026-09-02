@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Doctor Portal - EHR Dashboard</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      height: 100vh;
+      background-color: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      background-color: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-menu {
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover, .menu-item.active {
+      color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.06);
+    }
+
+    .menu-item.active {
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 240px;
+      width: calc(100% - 240px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--background);
+    }
+
+    /* Top Nav */
+    .topnav {
+      height: 64px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+    }
+
+    .topnav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 280px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 16px 0 36px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: var(--background);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background-color: transparent;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      background-color: rgba(37, 99, 235, 0.06);
+    }
+
+    .doctor-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* EHR Grid Container */
+    .dashboard-container {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* View Panels */
+    .doc-view-panel {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Top stats */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-box {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-info h5 {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      color: var(--primary);
+    }
+
+    /* Core Triple Panel Layout */
+    .ehr-workspace {
+      display: grid;
+      grid-template-columns: 280px 1fr 300px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Left Queue List */
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .queue-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .queue-item:hover, .queue-item.active {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    .queue-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .token-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .queue-status {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .queue-actions-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-action-xs {
+      flex: 1;
+      padding: 6px 0;
+      border: 1px solid var(--border);
+      background-color: transparent;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-action-xs:hover {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Center Panel Form Elements */
+    .patient-summary-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .patient-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .patient-summary-details h4 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .patient-summary-details p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .vital-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .vital-box h6 {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .vital-box p {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+      background-color: var(--background);
+      color: var(--text-main);
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      background-color: var(--surface);
+    }
+
+    .btn-main {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-main-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-main-outline {
+      border: 1px solid var(--border);
+      background-color: transparent;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="resources/logo.png" alt="CARE CORE CLINIC" style="height:32px; object-fit:contain;" onerror="this.src='logo.png'">
+    </div>
+    <nav class="sidebar-menu">
+      <a href="javascript:void(0)" class="menu-item active" id="tab-dashboard" onclick="switchDoctorTab('view-dashboard', this)">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+      </a>
+      <a href="javascript:void(0)" class="menu-item" id="tab-patients" onclick="switchDoctorTab('view-patients', this)">
+        <i class="bi bi-people-fill"></i> Patients
+      </a>
+      <a href="javascript:void(0)" class="menu-item" id="tab-prescriptions" onclick="switchDoctorTab('view-prescriptions', this)">
+        <i class="bi bi-capsule"></i> Prescriptions
+      </a>
+      <a href="javascript:void(0)" class="menu-item" id="tab-records" onclick="switchDoctorTab('view-records', this)">
+        <i class="bi bi-file-earmark-medical-fill"></i> Medical Records
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Topnav -->
+    <header class="topnav">
+      <div class="topnav-left">
+        <div class="search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Search EHR databases, medication lists...">
+        </div>
+      </div>
+      <div class="topnav-right">
+        <button class="nav-btn"><i class="bi bi-bell-fill"></i></button>
+        <div class="doctor-badge">
+          <div class="avatar">SP</div>
+          <span>Dr. Sakshi Patel (Cardiology)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEW 1: DASHBOARD WORKSPACE -->
+    <div id="view-dashboard" class="doc-view-panel" style="display: block;">
+      <div class="dashboard-container">
+        
+        <!-- Stats Strip -->
+        <div class="stats-strip">
+          <div class="stat-box">
+            <div class="stat-info">
+              <h5>Today's Patients</h5>
+              <div class="stat-value">30</div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-info">
+              <h5>Currently Waiting</h5>
+              <div class="stat-value" style="color: var(--warning);">6</div>
+            </div>
+            <div class="stat-icon" style="color:var(--warning);"><i class="bi bi-hourglass-split"></i></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-info">
+              <h5>Completed Visits</h5>
+              <div class="stat-value" style="color: var(--success);">23</div>
+            </div>
+            <div class="stat-icon" style="color:var(--success);"><i class="bi bi-check-circle-fill"></i></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-info">
+              <h5>Prescriptions Issued</h5>
+              <div class="stat-value" style="color: var(--primary);">28</div>
+            </div>
+            <div class="stat-icon" style="color:var(--primary);"><i class="bi bi-prescription2"></i></div>
+          </div>
+        </div>
+
+        <!-- Core EHR Workspace -->
+        <div class="ehr-workspace">
+          
+          <!-- Left: Live Queue Panel -->
+          <div class="panel-card">
+            <div class="panel-title">
+              <span>Today's Queue</span>
+              <i class="bi bi-arrow-repeat" style="cursor:pointer;" onclick="location.reload()"></i>
+            </div>
+            <div class="queue-list" id="queueListContainer">
+              <div class="queue-item active" id="queue-item-024" onclick="loadPatient('Sakshi Sardhara', 22, 'B+', 'Chest Pain Evaluation & Hypertension Review. Patient reports mild exertion fatigue.', '135/85 mmHg', '78 bpm', '165 mg/dL', 'SS', '024')">
+                <div class="queue-item-header">
+                  <span class="token-badge">#024</span>
+                  <span class="queue-status" style="color:var(--primary);">Active</span>
+                </div>
+                <div style="font-weight:600; font-size:13px;">Sakshi Sardhara</div>
+                <div class="queue-actions-row">
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Sakshi Sardhara', 22, 'B+', 'Chest Pain Evaluation & Hypertension Review.', '135/85 mmHg', '78 bpm', '165 mg/dL', 'SS', '024'); alert('Calling Token #024 (Sakshi Sardhara)')">Call</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #024')">Recall</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #024')">Skip</button>
+                </div>
+              </div>
+
+              <div class="queue-item" id="queue-item-025" onclick="loadPatient('Jia Patel', 25, 'A+', 'Routine Cardiology Consultation & Blood Pressure Check. Mild headache reported.', '118/75 mmHg', '72 bpm', '110 mg/dL', 'JP', '025')">
+                <div class="queue-item-header">
+                  <span class="token-badge">#025</span>
+                  <span class="queue-status" style="color:var(--warning);">Waiting</span>
+                </div>
+                <div style="font-weight:600; font-size:13px;">Jia Patel</div>
+                <div class="queue-actions-row">
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Jia Patel', 25, 'A+', 'Routine Cardiology Consultation.', '118/75 mmHg', '72 bpm', '110 mg/dL', 'JP', '025'); alert('Calling Token #025 (Jia Patel)')">Call</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #025')">Recall</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #025')">Skip</button>
+                </div>
+              </div>
+
+              <div class="queue-item" id="queue-item-026" onclick="loadPatient('Aarav Sharma', 28, 'O+', 'Lipid Profile & BP Check. Follow up for dietary modifications.', '125/80 mmHg', '80 bpm', '140 mg/dL', 'AS', '026')">
+                <div class="queue-item-header">
+                  <span class="token-badge">#026</span>
+                  <span class="queue-status" style="color:var(--warning);">Waiting</span>
+                </div>
+                <div style="font-weight:600; font-size:13px;">Aarav Sharma</div>
+                <div class="queue-actions-row">
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Aarav Sharma', 28, 'O+', 'Lipid Profile & BP Check.', '125/80 mmHg', '80 bpm', '140 mg/dL', 'AS', '026'); alert('Calling Token #026 (Aarav Sharma)')">Call</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #026')">Recall</button>
+                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #026')">Skip</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Active Patient Encounter Form -->
+          <div class="panel-card">
+            <div class="patient-summary-header">
+              <div class="patient-avatar" id="patient-av">SS</div>
+              <div class="patient-summary-details">
+                <h4 id="patient-name">Sakshi Sardhara</h4>
+                <p><span id="patient-age">22</span> Yrs, Female • Blood Group: <strong id="patient-blood" style="color:var(--primary);">B+</strong> • Token: <strong id="patient-token" style="color:var(--primary);">#024</strong></p>
+              </div>
+            </div>
+
+            <!-- Vitals Grid -->
+            <div class="vitals-grid">
+              <div class="vital-box">
+                <h6>Blood Pressure</h6>
+                <p style="color:var(--danger)" id="patient-bp">135/85 mmHg</p>
+              </div>
+              <div class="vital-box">
+                <h6>Heart Rate</h6>
+                <p style="color:var(--success)" id="patient-hr">78 bpm</p>
+              </div>
+              <div class="vital-box">
+                <h6>Blood Sugar</h6>
+                <p style="color:var(--warning)" id="patient-sugar">165 mg/dL</p>
+              </div>
+            </div>
+
+            <!-- Clinical Examination Form -->
+            <div class="form-group">
+              <label class="form-label">Chief Symptoms & Clinical Notes</label>
+              <textarea class="form-control" rows="3" id="patient-symptoms">Chest Pain Evaluation & Hypertension Review. Patient reports mild exertion fatigue.</textarea>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:10px;">
+              <button class="btn-main btn-main-outline" onclick="switchDoctorTab('view-records', document.getElementById('tab-records'))">📂 Open Full EHR History</button>
+              <button class="btn-main btn-main-primary" onclick="alert('Encounter Saved & Billed for ' + currentActivePatientName + '!')">Complete Consultation & Bill</button>
+            </div>
+          </div>
+
+          <!-- Right Panel: Consultation Desk & Quick Actions -->
+          <div class="panel-card">
+            <div class="panel-title">Consultation Desk</div>
+            <div style="padding:14px; background:var(--background); border-radius:12px; border:1px solid var(--border); margin-bottom:12px;">
+              <div style="font-size:0.75rem; text-transform:uppercase; color:var(--primary); font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">
+                <i class="bi bi-person-check-fill"></i> In Consultation
+              </div>
+              <div style="font-size:0.95rem; font-weight:700; color:var(--text-main);" id="telehealthReadyPatient">Sakshi Sardhara</div>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Token #024 • Room 101</div>
+            </div>
+
+            <button class="btn-main btn-main-primary" style="width:100%; justify-content:center; margin-bottom: 8px;" onclick="switchDoctorTab('view-prescriptions', document.getElementById('tab-prescriptions'))">
+              <i class="bi bi-prescription2"></i> Issue E-Prescription
+            </button>
+
+            <button class="btn-main btn-main-outline" style="width:100%; justify-content:center; margin-bottom: 16px; font-size:12px; padding:7px;" onclick="switchDoctorTab('view-records', document.getElementById('tab-records'))">
+              <i class="bi bi-file-earmark-medical"></i> View Diagnostic Records
+            </button>
+
+            <div style="border-top:1px solid var(--border); padding-top:12px;">
+              <h5 style="font-size:12px; font-weight:600; margin-bottom:8px;">Scheduled Today</h5>
+              <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border); cursor:pointer;" onclick="loadPatient('Sakshi Sardhara', 22, 'B+', 'Chest Pain Evaluation.', '135/85 mmHg', '78 bpm', '165 mg/dL', 'SS', '024')">
+                <span>Sakshi Sardhara</span>
+                <span style="color:var(--primary); font-weight:600;">10:30 AM</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; cursor:pointer;" onclick="loadPatient('Jia Patel', 25, 'A+', 'Routine Checkup.', '118/75 mmHg', '72 bpm', '110 mg/dL', 'JP', '025')">
+                <span>Jia Patel</span>
+                <span style="color:var(--text-muted);">02:30 PM</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: PATIENTS ROSTER -->
+    <div id="view-patients" class="doc-view-panel" style="display: none; padding: 24px;">
+      <div style="background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 700;">👥 Patient Roster & Medical Directory</h3>
+            <p style="font-size: 13px; color: var(--text-muted);">Registered clinic patients with medical history and diagnostic records.</p>
+          </div>
+          <button class="btn-main btn-main-primary" onclick="alert('Adding new patient record...')">+ Add New Patient</button>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="background: var(--background); border-bottom: 1px solid var(--border); text-align: left;">
+              <th style="padding: 12px 16px;">Patient Name</th>
+              <th style="padding: 12px 16px;">Age / Gender</th>
+              <th style="padding: 12px 16px;">Blood Group</th>
+              <th style="padding: 12px 16px;">Contact</th>
+              <th style="padding: 12px 16px;">Medical History</th>
+              <th style="padding: 12px 16px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 14px 16px; font-weight: 600;">Sakshi Sardhara</td>
+              <td style="padding: 14px 16px;">22 / Female</td>
+              <td style="padding: 14px 16px;"><span style="background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; font-weight: 700;">B+</span></td>
+              <td style="padding: 14px 16px;">9823456710</td>
+              <td style="padding: 14px 16px;">Hypertension / ECG Review</td>
+              <td style="padding: 14px 16px;"><button class="btn-main btn-main-primary" style="padding: 4px 12px; font-size: 12px;" onclick="loadPatient('Sakshi Sardhara', 22, 'B+', 'Hypertension'); switchDoctorTab('view-dashboard', document.getElementById('tab-dashboard'));">Consult Now</button></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 14px 16px; font-weight: 600;">Jia Patel</td>
+              <td style="padding: 14px 16px;">25 / Female</td>
+              <td style="padding: 14px 16px;"><span style="background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; font-weight: 700;">A+</span></td>
+              <td style="padding: 14px 16px;">9823456711</td>
+              <td style="padding: 14px 16px;">Routine Checkup</td>
+              <td style="padding: 14px 16px;"><button class="btn-main btn-main-primary" style="padding: 4px 12px; font-size: 12px;" onclick="loadPatient('Jia Patel', 25, 'A+', 'Routine Checkup'); switchDoctorTab('view-dashboard', document.getElementById('tab-dashboard'));">Consult Now</button></td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 14px 16px; font-weight: 600;">Aarav Sharma</td>
+              <td style="padding: 14px 16px;">28 / Male</td>
+              <td style="padding: 14px 16px;"><span style="background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; font-weight: 700;">O+</span></td>
+              <td style="padding: 14px 16px;">9823456712</td>
+              <td style="padding: 14px 16px;">Lipid Profile Evaluation</td>
+              <td style="padding: 14px 16px;"><button class="btn-main btn-main-primary" style="padding: 4px 12px; font-size: 12px;" onclick="loadPatient('Aarav Sharma', 28, 'O+', 'Lipid Check'); switchDoctorTab('view-dashboard', document.getElementById('tab-dashboard'));">Consult Now</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 3: PRESCRIPTIONS -->
+    <div id="view-prescriptions" class="doc-view-panel" style="display: none; padding: 24px;">
+      <div style="background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: var(--shadow-sm);">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">💊 E-Prescription Builder & Medication Ledger</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Generate digital prescriptions with dosage instructions and PDF export.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Select Patient</label>
+              <select class="form-control">
+                <option>Sakshi Sardhara (Token #024)</option>
+                <option>Jia Patel (Token #025)</option>
+                <option>Aarav Sharma (Token #026)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary Diagnosis & Advice</label>
+              <textarea class="form-control" rows="3" placeholder="Enter clinical diagnosis and lifestyle advice...">Essential Hypertension. Low sodium diet, 30 mins daily walk.</textarea>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Prescribed Medications</label>
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+              <thead>
+                <tr style="background:var(--background);">
+                  <th style="padding:6px;">Medicine</th>
+                  <th style="padding:6px;">Dosage</th>
+                  <th style="padding:6px;">Freq</th>
+                  <th style="padding:6px;">Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="Metformin 500mg" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="1 tablet" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="1-0-1" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="30 Days" style="height:32px;"></td>
+                </tr>
+                <tr>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="Atorvastatin 10mg" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="1 tablet" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="0-0-1" style="height:32px;"></td>
+                  <td style="padding:6px;"><input type="text" class="form-control" value="30 Days" style="height:32px;"></td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="btn-main btn-main-primary" style="width:100%; margin-top:16px;" onclick="alert('E-Prescription saved & generated PDF!')">🖨️ Generate & Export Prescription PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: MEDICAL RECORDS -->
+    <div id="view-records" class="doc-view-panel" style="display: none; padding: 24px;">
+      <div style="background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: var(--shadow-sm);">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">📂 EHR Diagnostic Medical Records</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Comprehensive blood panels, ECG charts, and lab diagnostic histories.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <div style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--background);">
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">🩸 Comprehensive Blood Panel</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Sakshi Sardhara • 22 Aug 2026</div>
+            <div style="font-size: 12px;">Fasting Glucose: <strong style="color:var(--danger)">165 mg/dL (High)</strong></div>
+            <div style="font-size: 12px;">Total Cholesterol: <strong style="color:var(--warning)">220 mg/dL (Elevated)</strong></div>
+            <button class="btn-main btn-main-outline" style="margin-top: 12px; font-size: 12px; padding: 4px 10px;" onclick="alert('Viewing Blood Panel Chart...')">View Report</button>
+          </div>
+
+          <div style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--background);">
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">❤️ 12-Lead ECG Analysis</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Sakshi Sardhara • 20 Aug 2026</div>
+            <div style="font-size: 12px;">Heart Rate: <strong>78 bpm (Normal Sinus Rhythm)</strong></div>
+            <button class="btn-main btn-main-outline" style="margin-top: 12px; font-size: 12px; padding: 4px 10px;" onclick="alert('Viewing ECG Trace Graph...')">View ECG Trace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentActivePatientName = 'Sakshi Sardhara';
+    let currentActiveToken = '024';
+
+    // Tab View Switcher
+    function switchDoctorTab(viewId, element) {
+      document.querySelectorAll('.doc-view-panel').forEach(panel => {
+        panel.style.display = 'none';
+      });
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      const target = document.getElementById(viewId);
+      if (target) {
+        target.style.display = 'block';
+      }
+      if (element) {
+        element.classList.add('active');
+      }
+    }
+
+    // Dynamic Patient Synchronization across Encounter & Consultation Desk
+    function loadPatient(name, age, blood, symptoms, bp, hr, sugar, initials, token) {
+      currentActivePatientName = name;
+      currentActiveToken = token || '024';
+
+      // Update Center Encounter Details
+      const nameEl = document.getElementById('patient-name');
+      const ageEl = document.getElementById('patient-age');
+      const bloodEl = document.getElementById('patient-blood');
+      const tokenEl = document.getElementById('patient-token');
+      const symptomsEl = document.getElementById('patient-symptoms');
+      const avEl = document.getElementById('patient-av');
+
+      if (nameEl) nameEl.textContent = name;
+      if (ageEl) ageEl.textContent = age;
+      if (bloodEl) bloodEl.textContent = blood;
+      if (tokenEl) tokenEl.textContent = '#' + currentActiveToken;
+      if (symptomsEl) symptomsEl.value = symptoms;
+      if (avEl) avEl.textContent = initials || name.split(' ').map(n => n[0]).join('');
+
+      // Update Vitals
+      const bpEl = document.getElementById('patient-bp');
+      const hrEl = document.getElementById('patient-hr');
+      const sugarEl = document.getElementById('patient-sugar');
+      if (bpEl && bp) bpEl.textContent = bp;
+      if (hrEl && hr) hrEl.textContent = hr;
+      if (sugarEl && sugar) sugarEl.textContent = sugar;
+
+      // Update Right Consultation Desk Panel
+      const readyEl = document.getElementById('telehealthReadyPatient');
+      if (readyEl) readyEl.textContent = name;
+
+      // Update Active Highlight on Queue List
+      document.querySelectorAll('.queue-item').forEach(item => item.classList.remove('active'));
+      const activeQueueItem = document.getElementById('queue-item-' + currentActiveToken);
+      if (activeQueueItem) activeQueueItem.classList.add('active');
+    }
+  </script>
+  <script src="ai-widget.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Core — Display Board</title>
+<link href="style.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body data-theme="light">
+<div class="bg-mesh" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand-wrap">
+    <img src="resources/logo.png" alt="Care Core Logo" class="brand-logo" style="height:36px; object-fit:contain;" onerror="this.src='logo.png'">
+  </div>
+  <div class="topbar-right">
+    <span id="liveClock"></span>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="displayView" class="page active">
+    <div class="notice-area" id="noticeAreaD">
+      <div class="notice-header"><span class="notice-dot"></span> Announcement <span class="notice-ts" id="noticeTsD"></span></div>
+      <div class="notice-ticker-track"><span class="notice-ticker" id="displayNoticeText">Care Core Cardiology: Token #024 (Sakshi Sardhara) is currently serving in Room 1. Token #025 (Jia Patel) please be ready.</span></div>
+    </div>
+
+    <!-- Dual Grid: Cardiology Board & Mobile Token QR Kiosk -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; max-width: 1080px; margin: 1rem auto; align-items: stretch;">
+      
+      <!-- Left: Cardiology Board Card -->
+      <div style="background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; display:flex; flex-direction:column;">
+        <div style="background: #2563eb; color: #ffffff; padding: 1.1rem 1.75rem; display: flex; align-items: center; justify-content: space-between;">
+          <h3 id="boardTitleText" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #ffffff;">General Cardiology Board</h3>
+          <span style="background: rgba(255,255,255,0.2); font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.85rem; border-radius: 20px; letter-spacing: 0.05em;">Active Now</span>
+        </div>
+
+        <div style="padding: 2rem 1.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; flex:1;">
+          <div style="flex: 1; min-width: 160px; text-align: center;">
+            <div id="boardTokenNumber" style="font-size: 4.5rem; font-weight: 800; color: #2563eb; line-height: 1; letter-spacing: -2px;">#024</div>
+            <div style="font-size: 0.82rem; font-weight: 700; letter-spacing: 0.15em; color: #64748b; margin-top: 0.75rem; text-transform: uppercase;">NOW SERVING</div>
+          </div>
+
+          <div style="width: 1px; height: 140px; background: #e2e8f0;"></div>
+
+          <div style="flex: 1.5; min-width: 220px; display: flex; flex-direction: column; gap: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+              <span style="color: #64748b; font-weight: 500;">Handling Doctor:</span>
+              <strong id="boardDocName" style="color: #0f172a; font-weight: 700;">Dr. Sakshi Patel</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+              <span style="color: #64748b; font-weight: 500;">Estimated Wait:</span>
+              <strong id="boardWaitTime" style="color: #0f172a; font-weight: 700;">~15 Minutes</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+              <span style="color: #64748b; font-weight: 500;">Patients Waiting:</span>
+              <strong id="boardPatientsWaiting" style="color: #0f172a; font-weight: 700;">6 Patients</strong>
+            </div>
+
+            <div style="margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #64748b; margin-bottom: 0.3rem; font-weight: 600;">
+                <span>Daily Capacity Processed</span>
+                <span id="boardCapacityPct">75%</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden;">
+                <div id="boardCapacityBar" style="width: 75%; height: 100%; background: #10b981; border-radius: 10px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Scan to Generate Token Kiosk QR -->
+      <div style="background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 1.5rem; border: 1px solid #e2e8f0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+          <i class="bi bi-qr-code-scan"></i> Mobile Self-Service
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin-bottom: 0.3rem;">Scan To Get Token</h4>
+        <p style="font-size: 0.78rem; color: #64748b; margin-bottom: 1rem;">Scan with your phone camera to join queue</p>
+        
+        <div id="kioskQrContainer" style="background: #ffffff; padding: 10px; border-radius: 14px; border: 1px solid #e2e8f0; display: inline-flex;"></div>
+        
+        <div style="margin-top: 1rem;">
+          <a href="generate-token.html" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.45rem 0.9rem; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span>⚡</span> Open Mobile Token Kiosk
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active Clinic-Wide Queue Display Board -->
+    <div class="card" id="todayQueueCard" style="max-width: 1080px; margin: 1.5rem auto;">
+      <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>📋 Today's Clinic Queue State</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">Live Real-Time Sync</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Patient</th>
+              <th>Doctor Room</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="todayQueueDisplayList">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="call-alert-overlay">
+  <div id="call-alert-box">
+    <span id="call-alert-bell" style="font-size:1.6rem">🔔</span>
+    <div id="call-alert-title" style="font-size:0.76rem;letter-spacing:0.1em">NOW SERVING</div>
+    <div id="call-alert-number">—</div>
+    <div id="call-alert-subtitle" style="font-size:0.7rem;opacity:.75">Please proceed to the counter</div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="display.js"></script>
+<script src="ai-widget.js"></script>
+<script src="telehealth-call.js"></script>
+<script src="global-nav.js"></script>
+</body>
+</html>
+
+
+
+
+

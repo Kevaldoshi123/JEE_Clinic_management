@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core CMS - SaaS Dashboard Design</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 14px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --background: #0B0F19;
+      --surface: #151F32;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: #1E293B;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: var(--transition);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      height: 100vh;
+      background-color: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      background-color: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-menu {
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover, .menu-item.active {
+      color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.08);
+    }
+
+    .menu-item.active {
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .user-profile-badge:hover {
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .user-info-text h4 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .user-info-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: 260px;
+      width: calc(100% - 260px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    /* Top Navigation */
+    .topnav {
+      height: 72px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      transition: var(--transition);
+    }
+
+    .topnav-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 320px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 16px 0 40px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: var(--background);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background-color: transparent;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+    }
+
+    .notification-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--danger);
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    /* Dashboard Layout Containers */
+    .dashboard-container {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--primary);
+    }
+
+    .page-title-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.75px;
+    }
+
+    /* Quick Action Button */
+    .action-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .action-btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Metric Cards Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .metric-info h5 {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+
+    .metric-trend {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .trend-up { color: var(--success); }
+    .trend-down { color: var(--danger); }
+
+    .metric-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    /* Two Column Dashboard Content */
+    .dashboard-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .panel-body {
+      padding: 24px;
+    }
+
+    /* Custom Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .custom-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 14px 20px;
+      background-color: rgba(37, 99, 235, 0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .custom-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .custom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .custom-table tbody tr {
+      transition: var(--transition);
+    }
+
+    .custom-table tbody tr:hover {
+      background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .badge-success { background-color: rgba(16, 185, 129, 0.12); color: var(--success); }
+    .badge-warning { background-color: rgba(245, 158, 11, 0.12); color: var(--warning); }
+    .badge-danger { background-color: rgba(239, 68, 68, 0.12); color: var(--danger); }
+
+    /* Skeleton Loading State Helper */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, rgba(100, 116, 139, 0.1) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    .skeleton-text {
+      height: 16px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .skeleton-title {
+      height: 24px;
+      width: 60%;
+      margin-bottom: 16px;
+    }
+
+    .skeleton-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Chart Canvas Sizing */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+
+    /* Toast Notification Container */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .custom-toast {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 16px 20px;
+      min-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s ease-out;
+      transition: var(--transition);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="bi bi-heart-pulse-fill"></i>
+      </div>
+      <span class="sidebar-title">Care Core CMS</span>
+    </div>
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item active">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-people-fill"></i> Patients
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-calendar2-week-fill"></i> Appointments
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-heart-fill"></i> Doctor Hub
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-clipboard2-pulse-fill"></i> Diagnostic Lab
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-capsule"></i> Pharmacy Stock
+      </a>
+      <a href="#" class="menu-item">
+        <i class="bi bi-credit-card-fill"></i> Billing & Finance
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-profile-badge">
+        <div class="avatar">KD</div>
+        <div class="user-info-text">
+          <h4>Keval Doshi</h4>
+          <p>Super Admin</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Topbar -->
+    <header class="topnav">
+      <div class="topnav-left">
+        <div class="search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Search patients, medical files, bills...">
+        </div>
+      </div>
+      <div class="topnav-right">
+        <!-- Theme Toggle -->
+        <button class="nav-btn" id="theme-toggle" title="Toggle theme">
+          <i class="bi bi-moon-fill" id="theme-icon"></i>
+        </button>
+        <!-- Skeleton Toggle Demo -->
+        <button class="nav-btn" id="skeleton-toggle" title="Toggle skeleton state">
+          <i class="bi bi-magic"></i>
+        </button>
+        <!-- Notifications -->
+        <button class="nav-btn" id="notif-btn">
+          <i class="bi bi-bell-fill"></i>
+          <div class="notification-dot"></div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Panel -->
+    <div class="dashboard-container">
+      
+      <!-- Breadcrumb & Title -->
+      <div>
+        <div class="breadcrumb">
+          <a href="#">Home</a>
+          <i class="bi bi-chevron-right"></i>
+          <span>Dashboard</span>
+        </div>
+        <div class="page-title-section" style="margin-top: 12px;">
+          <h1 class="page-title">Clinic Performance</h1>
+          <button class="action-btn" id="action-trigger">
+            <i class="bi bi-plus-lg"></i> Register New Patient
+          </button>
+        </div>
+      </div>
+
+      <!-- SKELETON LOADER PLACEHOLDER -->
+      <div id="dashboard-skeleton" class="hidden">
+        <div class="metrics-grid">
+          <div class="metric-card" style="height: 120px;">
+            <div class="skeleton skeleton-title"></div>
+          </div>
+          <div class="metric-card" style="height: 120px;">
+            <div class="skeleton skeleton-title"></div>
+          </div>
+          <div class="metric-card" style="height: 120px;">
+            <div class="skeleton skeleton-title"></div>
+          </div>
+        </div>
+        <div class="dashboard-row" style="margin-top: 24px;">
+          <div class="panel-card" style="height: 350px; padding: 24px;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+          <div class="panel-card" style="height: 350px; padding: 24px;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTUAL CONTENT -->
+      <div id="dashboard-real-content" class="dashboard-container" style="padding:0; gap:28px;">
+        
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          
+          <div class="metric-card">
+            <div class="metric-info">
+              <h5>Total Appointments</h5>
+              <div class="metric-value">1,482</div>
+              <div class="metric-trend trend-up">
+                <i class="bi bi-arrow-up-short"></i> +12.4% <span style="color: var(--text-muted); font-weight: normal;">vs last month</span>
+              </div>
+            </div>
+            <div class="metric-icon">
+              <i class="bi bi-calendar-check-fill"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h5>Active Queue Size</h5>
+              <div class="metric-value">28</div>
+              <div class="metric-trend trend-down">
+                <i class="bi bi-arrow-down-short"></i> -3.2% <span style="color: var(--text-muted); font-weight: normal;">vs yesterday</span>
+              </div>
+            </div>
+            <div class="metric-icon" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h5>Revenue Generated</h5>
+              <div class="metric-value">₹2.4L</div>
+              <div class="metric-trend trend-up">
+                <i class="bi bi-arrow-up-short"></i> +8.1% <span style="color: var(--text-muted); font-weight: normal;">vs last week</span>
+              </div>
+            </div>
+            <div class="metric-icon" style="background-color: rgba(16, 185, 129, 0.08); color: var(--success);">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Charts and Tables -->
+        <div class="dashboard-row">
+          
+          <!-- Column 1: Live Patient Queue Table -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <span class="panel-title">Live Queue Status</span>
+              <button class="nav-btn" style="width:28px; height:28px; font-size: 14px;"><i class="bi bi-three-dots-vertical"></i></button>
+            </div>
+            <div class="panel-body table-container" style="padding:0;">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Token</th>
+                    <th>Patient Name</th>
+                    <th>Selected Doctor</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>#024</strong></td>
+                    <td>Sakshi Sardhara</td>
+                    <td>Dr. Patel (Cardiology)</td>
+                    <td><span class="badge badge-success">In Consult</span></td>
+                    <td><i class="bi bi-eye-fill" style="cursor: pointer; color: var(--primary);"></i></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#025</strong></td>
+                    <td>Jia Patel</td>
+                    <td>Dr. Bosamia (General)</td>
+                    <td><span class="badge badge-warning">Waiting</span></td>
+                    <td><i class="bi bi-eye-fill" style="cursor: pointer; color: var(--primary);"></i></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#026</strong></td>
+                    <td>Dharmik Bosamia</td>
+                    <td>Dr. Sen (Pediatrics)</td>
+                    <td><span class="badge badge-warning">Waiting</span></td>
+                    <td><i class="bi bi-eye-fill" style="cursor: pointer; color: var(--primary);"></i></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#027</strong></td>
+                    <td>Rahul Mehra</td>
+                    <td>Dr. Patel (Cardiology)</td>
+                    <td><span class="badge badge-danger">Skipped</span></td>
+                    <td><i class="bi bi-eye-fill" style="cursor: pointer; color: var(--primary);"></i></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Column 2: Revenue Performance Chart -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <span class="panel-title">Weekly Visit Performance</span>
+            </div>
+            <div class="panel-body">
+              <div class="chart-container">
+                <canvas id="weeklyPerformanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Toast Notification Anchor -->
+    <div class="toast-container" id="toast-anchor"></div>
+
+  </main>
+
+  <script>
+    // Theme Toggle Script
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      if (currentTheme === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        themeIcon.className = 'bi bi-moon-fill';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeIcon.className = 'bi bi-sun-fill';
+      }
+    });
+
+    // Skeleton Load toggle
+    const skeletonToggle = document.getElementById('skeleton-toggle');
+    const realContent = document.getElementById('dashboard-real-content');
+    const skeletonContent = document.getElementById('dashboard-skeleton');
+    skeletonToggle.addEventListener('click', () => {
+      realContent.classList.toggle('hidden');
+      skeletonContent.classList.toggle('hidden');
+    });
+
+    // Toast Generator
+    const toastAnchor = document.getElementById('toast-anchor');
+    const actionTrigger = document.getElementById('action-trigger');
+    actionTrigger.addEventListener('click', () => {
+      const toast = document.createElement('div');
+      toast.className = 'custom-toast';
+      toast.innerHTML = `
+        <i class="bi bi-info-circle-fill" style="color: var(--primary); font-size:18px;"></i>
+        <div style="font-size:14px; font-weight:500;">Dynamic Patient Registration Dialog Triggered!</div>
+      `;
+      toastAnchor.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    });
+
+    // Chart.js Configuration
+    const ctx = document.getElementById('weeklyPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        datasets: [{
+          label: 'Visits',
+          data: [42, 59, 36, 81, 56, 28],
+          backgroundColor: '#2563EB',
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  </script>
+  <script src="ai-widget.js"></script>`n  <script src="telehealth-call.js"></script>`n  <script src="global-nav.js"></script>`n</body>
+</html>
+
+
+
+
+

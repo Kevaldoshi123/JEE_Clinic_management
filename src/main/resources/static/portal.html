@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Clinic — Portal Selection</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(37, 99, 235, 0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+      --radius: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      max-width: 600px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      border: 1px solid #bfdbfe;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 1.125rem;
+      line-height: 1.6;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 1150px;
+    }
+
+    .portal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: transparent;
+      transition: background 0.3s;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-hover);
+      border-color: #bfdbfe;
+    }
+
+    .portal-card.patient:hover::before { background: #2563eb; }
+    .portal-card.doctor:hover::before { background: #10b981; }
+    .portal-card.admin:hover::before { background: #8b5cf6; }
+    .portal-card.staff:hover::before { background: #f59e0b; }
+
+    .icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.25rem;
+      transition: transform 0.3s;
+    }
+
+    .portal-card:hover .icon-wrapper {
+      transform: scale(1.08);
+    }
+
+    .patient .icon-wrapper { background: #eff6ff; color: #2563eb; }
+    .doctor .icon-wrapper { background: #ecfdf5; color: #10b981; }
+    .admin .icon-wrapper { background: #f5f3ff; color: #8b5cf6; }
+    .staff .icon-wrapper { background: #fffbeeb0; color: #d97706; }
+
+    .portal-card h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+
+    .portal-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .patient .action-btn { background: #eff6ff; color: #2563eb; }
+    .patient:hover .action-btn { background: #2563eb; color: #ffffff; }
+
+    .doctor .action-btn { background: #ecfdf5; color: #10b981; }
+    .doctor:hover .action-btn { background: #10b981; color: #ffffff; }
+
+    .admin .action-btn { background: #f5f3ff; color: #8b5cf6; }
+    .admin:hover .action-btn { background: #8b5cf6; color: #ffffff; }
+
+    .staff .action-btn { background: #fffbeeb0; color: #d97706; }
+    .staff:hover .action-btn { background: #d97706; color: #ffffff; }
+
+    .quick-links {
+      margin-top: 3.5rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .quick-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .quick-link-btn:hover {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    /* Modal Overlay */
+    .role-auth-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .role-auth-box {
+      background: #ffffff;
+      border-radius: 20px;
+      max-width: 440px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      outline: none;
+      margin-top: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .demo-chip {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      padding: 0.4rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div style="margin-bottom: 1.25rem;">
+      <img src="resources/logo.png" alt="CARE CORE CLINIC" style="height:42px; object-fit:contain;" onerror="this.src='logo.png'">
+    </div>
+    <h1>Select Your Portal</h1>
+    <p>Authentication required to enter specialized clinic dashboards.</p>
+  </div>
+
+  <div class="portal-grid">
+    <!-- Patient Portal Card -->
+    <div onclick="openRoleAuthModal('patient')" class="portal-card patient">
+      <div class="icon-wrapper">
+        <i class="bi bi-person-heart"></i>
+      </div>
+      <h2>Patient Portal</h2>
+      <p>Book appointments, view digital medical history, check live queue status & download lab reports.</p>
+      <div class="action-btn">
+        <span>Authenticate & Enter</span>
+        <i class="bi bi-lock-fill"></i>
+      </div>
+    </div>
+
+    <!-- Doctor Portal Card -->
+    <div onclick="openRoleAuthModal('doctor')" class="portal-card doctor">
+      <div class="icon-wrapper">
+        <i class="bi bi-heart-pulse-fill"></i>
+      </div>
+      <h2>Doctor EHR Portal</h2>
+      <p>Access patient queues, write Electronic Health Records, build prescriptions & host video calls.</p>
+      <div class="action-btn">
+        <span>Authenticate & Enter</span>
+        <i class="bi bi-lock-fill"></i>
+      </div>
+    </div>
+
+    <!-- Admin Portal Card -->
+    <div onclick="openRoleAuthModal('admin')" class="portal-card admin">
+      <div class="icon-wrapper">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <h2>Admin Control Panel</h2>
+      <p>Manage doctor approvals, clinic analytics, user permissions & system security controls.</p>
+      <div class="action-btn">
+        <span>Authenticate & Enter</span>
+        <i class="bi bi-lock-fill"></i>
+      </div>
+    </div>
+
+    <!-- Staff Portal Card -->
+    <div onclick="openRoleAuthModal('staff')" class="portal-card staff">
+      <div class="icon-wrapper">
+        <i class="bi bi-capsule"></i>
+      </div>
+      <h2>Staff & Pharmacy Hub</h2>
+      <p>Manage reception token verification, pharmacy stock ledger & lab diagnostic orders.</p>
+      <div class="action-btn">
+        <span>Authenticate & Enter</span>
+        <i class="bi bi-lock-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-links">
+    <a href="homepage_design.html" class="quick-link-btn"><i class="bi bi-house"></i> Public Homepage</a>
+    <a href="display.html" class="quick-link-btn"><i class="bi bi-display"></i> Live Queue Display Board</a>
+    <a href="register.html" class="quick-link-btn"><i class="bi bi-person-plus"></i> Doctor Registration</a>
+  </div>
+
+  <!-- Role Auth Modal Window -->
+  <div class="role-auth-modal" id="roleAuthModal">
+    <div class="role-auth-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <h3 id="modalRoleTitle" style="font-size:1.25rem; font-weight:700; color:#0f172a;">🔒 Portal Authentication</h3>
+        <button onclick="closeRoleAuthModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;">&times;</button>
+      </div>
+
+      <p style="font-size:0.85rem; color:#64748b; margin-bottom:1.25rem;">Please enter your credentials to unlock your authorized dashboard.</p>
+
+      <label style="font-size:0.8rem; font-weight:600; color:#475569;">Email / Username</label>
+      <input type="text" class="auth-input" id="authEmail" placeholder="Enter your email...">
+
+      <label style="font-size:0.8rem; font-weight:600; color:#475569;">Password</label>
+      <input type="password" class="auth-input" id="authPassword" placeholder="Enter password...">
+
+      <button id="demoCredentialBtn" class="demo-chip" onclick="fillDemoCredentials()">⚡ Fill Demo Credentials for Presentation</button>
+
+      <button onclick="submitRoleAuth()" style="width:100%; margin-top:1.25rem; padding:0.85rem; background:#2563eb; color:white; border:none; border-radius:10px; font-weight:600; cursor:pointer;">Authenticate & Enter Portal →</button>
+    </div>
+  </div>
+
+  <script>
+    let currentAuthRole = 'doctor';
+    const redirectMap = {
+      doctor: 'doctor_portal_design.html',
+      patient: 'patient_portal_design.html',
+      admin: 'admin_portal_design.html',
+      staff: 'staff_portal_design.html'
+    };
+
+    const demoMap = {
+      doctor: { email: 'sakshi.patel@carecore.com', pass: 'Doctor@123', name: 'Dr. Sakshi Patel' },
+      patient: { email: 'sakshi@gmail.com', pass: 'Patient@123', name: 'Sakshi Sardhara' },
+      admin: { email: 'admin@carecore.com', pass: 'Admin@123', name: 'System Administrator' },
+      staff: { email: 'staff@carecore.com', pass: 'Staff@123', name: 'Receptionist' }
+    };
+
+    function openRoleAuthModal(role) {
+      currentAuthRole = role;
+      document.getElementById('modalRoleTitle').innerHTML = `🔒 ${role.toUpperCase()} Portal Authentication`;
+      document.getElementById('roleAuthModal').style.display = 'flex';
+      fillDemoCredentials();
+    }
+
+    function closeRoleAuthModal() {
+      document.getElementById('roleAuthModal').style.display = 'none';
+    }
+
+    function fillDemoCredentials() {
+      const demo = demoMap[currentAuthRole];
+      if (demo) {
+        document.getElementById('authEmail').value = demo.email;
+        document.getElementById('authPassword').value = demo.pass;
+      }
+    }
+
+    function submitRoleAuth() {
+      const email = document.getElementById('authEmail').value.trim();
+      const pass = document.getElementById('authPassword').value.trim();
+
+      if (!email || !pass) {
+        alert('Please enter valid email/username and password!');
+        return;
+      }
+
+      // Save authenticated role session
+      localStorage.setItem('carecore_auth_role', currentAuthRole);
+      localStorage.setItem('carecore_auth_user', email);
+      
+      const targetPage = redirectMap[currentAuthRole];
+      alert(`✅ Authentication Successful for ${currentAuthRole.toUpperCase()}!\nRedirecting to ${targetPage}...`);
+      window.location.href = targetPage;
+    }
+  </script>
+
+  <script src="ai-widget.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>
+

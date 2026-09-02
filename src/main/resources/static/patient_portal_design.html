@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Patient Portal - Premium Dashboard</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- jsPDF Library for PDF Downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 14px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --background: #0B0F19;
+      --surface: #151F32;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: #1E293B;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+      transition: var(--transition);
+    }
+
+    /* Sidebar - Online Banking Aesthetic */
+    .sidebar {
+      width: 260px;
+      height: 100vh;
+      background-color: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      background-color: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-menu {
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover, .menu-item.active {
+      color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.08);
+    }
+
+    .menu-item.active {
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      width: calc(100% - 260px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    /* Top Navigation */
+    .topnav {
+      height: 72px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      transition: var(--transition);
+    }
+
+    .topnav-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 300px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 16px 0 40px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: var(--background);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background-color: transparent;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* Views Layout */
+    .view-section {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .header-section h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.75px;
+      margin-bottom: 4px;
+    }
+
+    .header-section p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Overview Cards Grid */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .overview-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: var(--transition);
+    }
+
+    .overview-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .overview-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .overview-card-info h5 {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .overview-card-info p {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Three Column Dashboard Layout */
+    .dashboard-layout-cols {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      gap: 24px;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .menu-toggle-btn {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      border: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+    }
+
+    .sidebar-backdrop.active {
+      display: block;
+    }
+
+    /* Mobile Native Bottom Navigation Bar */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 990;
+      align-items: center;
+      justify-content: space-around;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      gap: 3px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .mobile-nav-item i {
+      font-size: 18px;
+    }
+
+    .mobile-nav-item.active {
+      color: var(--primary);
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-layout-cols {
+        grid-template-columns: 1.2fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
+        z-index: 1000;
+      }
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-bottom: 74px; /* Space for bottom navigation */
+      }
+      .topnav {
+        padding: 0 16px;
+        height: 60px;
+      }
+      .topnav-left {
+        gap: 12px;
+      }
+      .search-wrapper {
+        display: none; /* Hide desktop search on mobile */
+      }
+      .menu-toggle-btn {
+        display: flex;
+      }
+      .view-section {
+        padding: 16px 12px !important;
+        gap: 16px !important;
+      }
+      .header-section h1 {
+        font-size: 20px !important;
+      }
+      .header-section p {
+        font-size: 13px !important;
+      }
+      .overview-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+      }
+      .overview-card {
+        padding: 14px 12px !important;
+        gap: 10px !important;
+      }
+      .overview-card-icon {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 16px !important;
+        border-radius: 10px !important;
+      }
+      .overview-card-info h5 {
+        font-size: 11px !important;
+      }
+      .overview-card-info p {
+        font-size: 13px !important;
+      }
+      .dashboard-layout-cols {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+      .custom-table th, .custom-table td {
+        padding: 10px 8px !important;
+        font-size: 12px !important;
+      }
+      .mobile-bottom-nav {
+        display: flex;
+      }
+    }
+
+    .panel-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    /* Timelines */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      position: relative;
+    }
+
+    .timeline-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--background);
+      border: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      z-index: 2;
+    }
+
+    .timeline-details {
+      flex-grow: 1;
+    }
+
+    .timeline-details h5 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .timeline-details p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Custom Tables */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .custom-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    .custom-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .btn-action-sm {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: transparent;
+      color: var(--text-main);
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-action-sm:hover {
+      background-color: rgba(37, 99, 235, 0.05);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Calendar Grid */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+
+    .calendar-day-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 0;
+    }
+
+    .calendar-day {
+      font-size: 12px;
+      padding: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .calendar-day:hover {
+      background-color: rgba(37, 99, 235, 0.08);
+    }
+
+    .calendar-day.active {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .msg-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .msg-item:last-child {
+      border-bottom: none;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0 12px;
+      font-size: 14px;
+      background-color: var(--surface);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-main {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-main:hover {
+      background-color: var(--primary-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="portalSidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="bi bi-heart-pulse-fill"></i>
+      </div>
+      <span class="sidebar-title">Care Core Portal</span>
+    </div>
+    <nav class="sidebar-menu">
+      <div class="menu-item active" onclick="switchView('dashboard')">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+      </div>
+      <div class="menu-item" onclick="switchView('appointments')">
+        <i class="bi bi-calendar2-week-fill"></i> Appointments
+      </div>
+      <div class="menu-item" onclick="switchView('medical-records')">
+        <i class="bi bi-file-medical-fill"></i> Medical Records
+      </div>
+      <div class="menu-item" onclick="switchView('payments')">
+        <i class="bi bi-credit-card-fill"></i> Payments
+      </div>
+      <div class="menu-item" onclick="switchView('settings')">
+        <i class="bi bi-gear-fill"></i> Settings
+      </div>
+      <a href="portal.html" class="menu-item" style="margin-top:auto; color:var(--danger)">
+        <i class="bi bi-box-arrow-left"></i> Logout
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Top Nav -->
+    <header class="topnav">
+      <div class="topnav-left">
+        <!-- Mobile Menu Hamburger Button -->
+        <button class="menu-toggle-btn" onclick="toggleMobileSidebar()" title="Toggle Navigation Menu">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Search records, invoices, slots...">
+        </div>
+      </div>
+      <div class="topnav-right">
+        <!-- Theme Toggle -->
+        <button class="nav-btn" id="theme-toggle" title="Toggle theme">
+          <i class="bi bi-moon-fill" id="theme-icon"></i>
+        </button>
+        <!-- Notifications -->
+        <button class="nav-btn">
+          <i class="bi bi-bell-fill"></i>
+        </button>
+        <!-- Profile Avatar -->
+        <div class="avatar">SS</div>
+      </div>
+    </header>
+
+    <!-- SECTION: DASHBOARD VIEW -->
+    <section class="view-section" id="view-dashboard">
+      <div class="header-section">
+        <h1>Welcome back, Sakshi Sardhara</h1>
+        <p>Your health dashboard is up to date. You have one upcoming appointment tomorrow.</p>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="overview-grid">
+        
+        <div class="overview-card">
+          <div class="overview-card-icon"><i class="bi bi-calendar2-event-fill"></i></div>
+          <div class="overview-card-info">
+            <h5>Next Visit</h5>
+            <p>Tomorrow, 10 AM</p>
+          </div>
+        </div>
+
+        <div class="overview-card">
+          <div class="overview-card-icon" style="background-color:rgba(239,68,68,0.08); color:var(--danger);"><i class="bi bi-credit-card-fill"></i></div>
+          <div class="overview-card-info">
+            <h5>Pending Bills</h5>
+            <p>₹1,250 Outstanding</p>
+          </div>
+        </div>
+
+        <div class="overview-card">
+          <div class="overview-card-icon" style="background-color:rgba(16,185,129,0.08); color:var(--success);"><i class="bi bi-folder-fill"></i></div>
+          <div class="overview-card-info">
+            <h5>Lab Reports</h5>
+            <p>3 Files Ready</p>
+          </div>
+        </div>
+
+        <div class="overview-card">
+          <div class="overview-card-icon" style="background-color:rgba(245,158,11,0.08); color:var(--warning);"><i class="bi bi-capsule-pill"></i></div>
+          <div class="overview-card-info">
+            <h5>Active Prescriptions</h5>
+            <p>2 Medicines</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Layout Columns -->
+      <div class="dashboard-layout-cols">
+        
+        <!-- Left: Appointment Timeline -->
+        <div class="panel-card">
+          <div class="panel-header">Appointment Timeline</div>
+          <div class="panel-body">
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-icon"><i class="bi bi-check"></i></div>
+                <div class="timeline-details">
+                  <h5>General Consultation</h5>
+                  <p>Dr. Bosamia • July 20, 2026</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-icon" style="border-color: var(--success);"><i class="bi bi-clock-history"></i></div>
+                <div class="timeline-details">
+                  <h5>Blood Chemistry Test</h5>
+                  <p>Diagnostic Lab • June 12, 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Personal Health Record -->
+        <div class="panel-card">
+          <div class="panel-header">Recent Health Records</div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Record Type</th>
+                  <th>Diagnoses</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Lab Report</strong></td>
+                  <td>Complete Blood Count</td>
+                  <td>July 18, 2026</td>
+                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Prescription</strong></td>
+                  <td>Amoxicillin 500mg</td>
+                  <td>July 15, 2026</td>
+                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Lab Report</strong></td>
+                  <td>Lipid Profile Panel</td>
+                  <td>June 10, 2026</td>
+                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Monthly Calendar & Notifications -->
+        <div class="panel-card">
+          <div class="panel-header">July 2026</div>
+          <div class="panel-body">
+            <div class="calendar-grid">
+              <div class="calendar-day-header">M</div>
+              <div class="calendar-day-header">T</div>
+              <div class="calendar-day-header">W</div>
+              <div class="calendar-day-header">T</div>
+              <div class="calendar-day-header">F</div>
+              <div class="calendar-day-header">S</div>
+              <div class="calendar-day-header">S</div>
+              <!-- Calendar dates -->
+              <div class="calendar-day">27</div>
+              <div class="calendar-day">28</div>
+              <div class="calendar-day">29</div>
+              <div class="calendar-day active">30</div>
+              <div class="calendar-day">31</div>
+              <div class="calendar-day">1</div>
+              <div class="calendar-day">2</div>
+            </div>
+            <div style="margin-top:20px; border-top: 1px solid var(--border); padding-top:16px;">
+              <h6 style="font-size:12px; font-weight:600; margin-bottom:10px;">Messages from Doctor</h6>
+              <div class="msg-item">
+                <div class="msg-avatar">DB</div>
+                <div style="font-size:12px;">
+                  <strong>Dr. Dharmik Bosamia</strong>
+                  <p style="color:var(--text-muted);">Please remember to drink plenty of water before your blood test.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SECTION: APPOINTMENTS VIEW -->
+    <section class="view-section hidden" id="view-appointments">
+      <div class="header-section">
+        <h1>Book & Manage Appointments</h1>
+        <p>Schedule your consultations with our specialist doctors online.</p>
+      </div>
+
+      <div class="dashboard-layout-cols" style="grid-template-columns: 1fr 1fr;">
+        <!-- Booking Form -->
+        <div class="panel-card">
+          <div class="panel-header">Request Appointment</div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="form-label">Select Specialty Doctor</label>
+              <select class="form-control">
+                <option>Dr. Sakshi Patel (Cardiology)</option>
+                <option>Dr. Dharmik Bosamia (General)</option>
+                <option>Dr. Sen Sharma (Pediatrics)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preferred Date</label>
+              <input type="date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Available Time Slots</label>
+              <select class="form-control">
+                <option>10:00 AM - 10:30 AM</option>
+                <option>11:30 AM - 12:00 PM</option>
+                <option>02:00 PM - 02:30 PM</option>
+              </select>
+            </div>
+            <button class="btn-main" onclick="alert('Appointment Request Submitted Successfully!')">Book Appointment</button>
+          </div>
+        </div>
+
+        <!-- Timeline of scheduled visits -->
+        <div class="panel-card">
+          <div class="panel-header">Scheduled Consultations</div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Doctor</th>
+                  <th>Specialty</th>
+                  <th>Date & Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Dr. Sakshi Patel</td>
+                  <td>Cardiology</td>
+                  <td>Tomorrow, 10 AM</td>
+                  <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td>Dr. Dharmik Bosamia</td>
+                  <td>General Medicine</td>
+                  <td>July 20, 2026</td>
+                  <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: MEDICAL RECORDS VIEW -->
+    <section class="view-section hidden" id="view-medical-records">
+      <div class="header-section">
+        <h1>Your Electronic Health Records (EHR)</h1>
+        <p>Access diagnoses, diagnostic summaries, and prescription records securely.</p>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-header">Clinical Record Index</div>
+        <div class="panel-body" style="padding:0;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Record Code</th>
+                <th>Diagnostic Description</th>
+                <th>Prescribing Doctor</th>
+                <th>Date Logged</th>
+                <th>File Access</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>#EHR-882</strong></td>
+                <td>Mild hypertension observation, lifestyle adjustment</td>
+                <td>Dr. Sakshi Patel</td>
+                <td>July 18, 2026</td>
+                <td><button class="btn-action-sm" onclick="downloadEhrPdf('EHR-882', 'Mild hypertension observation, lifestyle adjustment', 'Dr. Sakshi Patel', 'July 18, 2026')"><i class="bi bi-file-earmark-pdf-fill"></i> Download PDF</button></td>
+              </tr>
+              <tr>
+                <td><strong>#EHR-421</strong></td>
+                <td>Acute Pharyngitis recovery review</td>
+                <td>Dr. Dharmik Bosamia</td>
+                <td>June 22, 2026</td>
+                <td><button class="btn-action-sm" onclick="downloadEhrPdf('EHR-421', 'Acute Pharyngitis recovery review', 'Dr. Dharmik Bosamia', 'June 22, 2026')"><i class="bi bi-file-earmark-pdf-fill"></i> Download PDF</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: PAYMENTS VIEW -->
+    <section class="view-section hidden" id="view-payments">
+      <div class="header-section">
+        <h1>Billing & Invoices</h1>
+        <p>Review outstanding consultation balances and securely pay online.</p>
+      </div>
+
+      <div class="dashboard-layout-cols" style="grid-template-columns: 1fr 2fr;">
+        <!-- Bill Overview -->
+        <div class="panel-card">
+          <div class="panel-header">Outstanding Dues</div>
+          <div class="panel-body">
+            <h2 style="font-size:36px; font-weight:800; color:var(--danger); margin-bottom:12px;">₹1,250</h2>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:24px;">For Cardiology Consultation + ECG Scan on July 18, 2026</p>
+            <button class="btn-main" style="width:100%; justify-content:center;" onclick="alert('Payment Gateway Redirecting...')">Pay Online</button>
+          </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div class="panel-card">
+          <div class="panel-header">Invoice History</div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Service Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Receipt</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>#INV-4091</td>
+                  <td>General consultation + Lab fee</td>
+                  <td>₹850</td>
+                  <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Paid</span></td>
+                  <td><button class="btn-action-sm"><i class="bi bi-receipt"></i> Print</button></td>
+                </tr>
+                <tr>
+                  <td>#INV-3082</td>
+                  <td>Pediatric wellness review</td>
+                  <td>₹500</td>
+                  <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Paid</span></td>
+                  <td><button class="btn-action-sm"><i class="bi bi-receipt"></i> Print</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: SETTINGS VIEW -->
+    <section class="view-section hidden" id="view-settings">
+      <div class="header-section">
+        <h1>Portal Settings</h1>
+        <p>Modify contact details, change passwords, and configure account access.</p>
+      </div>
+
+      <div class="panel-card" style="max-width: 600px;">
+        <div class="panel-header">Profile Information</div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" value="sakshi@mumbai.edu" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="text" class="form-control" value="+91 99887 76655">
+          </div>
+          <button class="btn-main" onclick="alert('Profile details updated successfully!')">Save Modifications</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Native Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-item active" id="mob-nav-dashboard" onclick="switchMobileView('dashboard', this)">
+      <i class="bi bi-grid-1x2-fill"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-appointments" onclick="switchMobileView('appointments', this)">
+      <i class="bi bi-calendar2-week-fill"></i>
+      <span>Appts</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-medical-records" onclick="switchMobileView('medical-records', this)">
+      <i class="bi bi-file-medical-fill"></i>
+      <span>Records</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-payments" onclick="switchMobileView('payments', this)">
+      <i class="bi bi-credit-card-fill"></i>
+      <span>Bills</span>
+    </button>
+    <button class="mobile-nav-item" onclick="toggleMobileSidebar()">
+      <i class="bi bi-list"></i>
+      <span>Menu</span>
+    </button>
+  </nav>
+
+  <script>
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('portalSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar && backdrop) {
+        const isOpen = sidebar.classList.contains('mobile-open');
+        if (isOpen) {
+          sidebar.classList.remove('mobile-open');
+          backdrop.classList.remove('active');
+        } else {
+          sidebar.classList.add('mobile-open');
+          backdrop.classList.add('active');
+        }
+      }
+    }
+
+    // Tab switching engine
+    function switchView(viewName) {
+      // Hide all sections
+      const sections = ['dashboard', 'appointments', 'medical-records', 'payments', 'settings'];
+      sections.forEach(sec => {
+        const el = document.getElementById(`view-${sec}`);
+        if (el) el.classList.add('hidden');
+      });
+      
+      // Remove active states from sidebar
+      const items = document.querySelectorAll('.menu-item');
+      items.forEach(item => item.classList.remove('active'));
+
+      // Remove active states from mobile bottom nav
+      const mobItems = document.querySelectorAll('.mobile-nav-item');
+      mobItems.forEach(item => item.classList.remove('active'));
+
+      // Show requested section
+      const targetSec = document.getElementById(`view-${viewName}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+      
+      // Highlight sidebar item
+      if (event && event.currentTarget && event.currentTarget.classList.contains('menu-item')) {
+        event.currentTarget.classList.add('active');
+      }
+
+      // Highlight mobile nav item
+      const targetMobNav = document.getElementById(`mob-nav-${viewName}`);
+      if (targetMobNav) targetMobNav.classList.add('active');
+
+      // Close mobile drawer if open
+      const sidebar = document.getElementById('portalSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar && backdrop) {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('active');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchMobileView(viewName, btn) {
+      switchView(viewName);
+      if (btn) btn.classList.add('active');
+    }
+
+    // Theme Toggle Script
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      if (currentTheme === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        themeIcon.className = 'bi bi-moon-fill';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeIcon.className = 'bi bi-sun-fill';
+      }
+    });
+    // Dynamic EHR PDF Generator
+    function downloadEhrPdf(recordCode, desc, doctor, date) {
+      if (window.jspdf) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header Banner
+        doc.setFillColor(37, 99, 235);
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.text('CARE CORE CLINIC', 14, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Official Electronic Health Record & Diagnostic Summary', 14, 25);
+
+        // Document Title
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.text('MEDICAL EHR REPORT — ' + recordCode, 14, 46);
+
+        // Patient & Clinical Meta Info
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Patient Name: Sakshi Sardhara', 14, 58);
+        doc.text('Age / Gender: 22 Yrs / Female', 14, 65);
+        doc.text('Blood Group: B+', 14, 72);
+        doc.text('Date Logged: ' + date, 120, 58);
+        doc.text('Attending Physician: ' + doctor, 120, 65);
+        doc.text('Department: General Cardiology', 120, 72);
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(14, 78, 196, 78);
+
+        // Vitals Table Box
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, 84, 182, 30, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Patient Vital Measurements:', 20, 93);
+        doc.setFont('helvetica', 'normal');
+        doc.text('• Blood Pressure: 135/85 mmHg (Elevated)', 20, 101);
+        doc.text('• Heart Rate: 78 bpm (Normal Sinus)', 20, 107);
+        doc.text('• Fasting Glucose: 165 mg/dL', 110, 101);
+        doc.text('• Total Cholesterol: 220 mg/dL', 110, 107);
+
+        // Clinical Summary
+        doc.setFont('helvetica', 'bold');
+        doc.text('Clinical Diagnosis & Summary Observations:', 14, 126);
+        doc.setFont('helvetica', 'normal');
+        doc.text(desc, 14, 134);
+
+        // Prescribed Medications
+        doc.setFont('helvetica', 'bold');
+        doc.text('Prescribed Treatment & Medications:', 14, 150);
+        
+        doc.setFillColor(239, 246, 255);
+        doc.rect(14, 156, 182, 35, 'F');
+        doc.setFontSize(10);
+        doc.text('1. Metformin 500mg — 1 tablet (1-0-1) — 30 Days (After Meals)', 20, 166);
+        doc.text('2. Atorvastatin 10mg — 1 tablet (0-0-1) — 30 Days (Bedtime)', 20, 174);
+        doc.text('3. Lifestyle Advice: Low sodium diet, 30 mins daily brisk walk', 20, 182);
+
+        // Doctor Signature Stamp
+        doc.setDrawColor(37, 99, 235);
+        doc.line(130, 215, 190, 215);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Digitally Signed by ' + doctor, 130, 222);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('Care Core Certified EHR Practitioner', 130, 228);
+
+        // Footer Disclaimer
+        doc.setTextColor(148, 163, 184);
+        doc.setFontSize(8);
+        doc.text('This is a verified digital EHR record generated by Care Core Medical System.', 14, 280);
+
+        doc.save(`CareCore_Medical_Report_${recordCode}.pdf`);
+      } else {
+        alert('Generating EHR PDF Report for ' + recordCode + '...');
+      }
+    }
+  </script>
+  <script src="ai-widget.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>
+
+
+
+
+

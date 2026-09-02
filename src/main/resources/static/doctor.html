@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+  <title>Care Core — Doctor Portal</title>
+  <link href="style.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── Day toggles ── */
+    .day-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 82px; padding: .45rem .3rem; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface2);
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      color: var(--muted); transition: all .2s; user-select: none;
+      flex-direction: column; gap: .18rem;
+    }
+    .day-toggle .day-abbr { font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; }
+    .day-toggle.active {
+      border-color: var(--gold); background: rgba(168,115,26,.1); color: var(--gold);
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+    [data-theme="dark"] .day-toggle.active { background: rgba(201,168,76,.1); color: var(--gold-lt); }
+
+    /* ── Appointment status badges ── */
+    .appt-badge {
+      display: inline-flex; align-items: center; gap: .28rem;
+      padding: .22rem .65rem; border-radius: 12px; font-size: .7rem; font-weight: 700;
+      text-transform: capitalize;
+    }
+    .appt-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .appt-badge.pending  { background: rgba(217,119,6,.1);  color: var(--amber); }
+    .appt-badge.approved { background: rgba(22,163,74,.1);  color: var(--green); }
+    .appt-badge.rejected { background: rgba(220,38,38,.1);  color: var(--red); }
+    .appt-badge.completed{ background: rgba(29,111,164,.1); color: var(--blue); }
+
+    /* ── Slot preview pills ── */
+    .slot-pill {
+      padding: .22rem .6rem; border-radius: 8px; font-size: .72rem; font-weight: 600;
+      background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .autocomplete-suggestions {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    .autocomplete-item {
+      padding: .6rem .85rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      font-size: .84rem;
+      transition: background .12s;
+      text-align: left;
+    }
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+    .autocomplete-item:hover {
+      background: var(--surface2);
+    }
+  </style>
+</head>
+
+<body class="doctor-page" data-theme="light">
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- ── LOGIN ── -->
+  <div id="loginOverlay" style="
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg, #f4f6f9);
+    box-sizing: border-box;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  ">
+    <div style="
+      width: 100%;
+      max-width: 380px;
+      background: var(--bg-mid, #ffffff);
+      border: 1px solid rgba(168,115,26,0.12);
+      border-radius: 20px;
+      padding: 2rem 1.75rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+      box-sizing: border-box;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: transform;
+    ">
+      <div style="text-align:center; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:800; font-size:1.5rem;">
+        <div style="width:36px;height:36px;background:#2563eb;color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;"><i class="bi bi-heart-pulse-fill"></i></div>
+        <span>Care<span style="color:#2563eb;">Core</span></span>
+      </div>
+      <div style="text-align:center; font-size:0.82rem; color:var(--muted); margin-bottom:1.5rem;">Doctor Portal — Sign in to continue</div>
+      <div style="margin-bottom:0.85rem;">
+        <label for="loginEmail" style="display:block;font-size:0.72rem;font-weight:600;color:var(--muted);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.05em;">Email</label>
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="doctor@carecore.com"
+          inputmode="email"
+          autocomplete="email"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck="false"
+          style="
+            display: block;
+            width: 100%;
+            padding: 0.78rem 1rem;
+            font-size: 16px;
+            font-family: inherit;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: var(--text);
+            outline: none;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+            cursor: text;
+            position: relative;
+            z-index: 2;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          "
+        >
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label for="loginPassword" style="display:block;font-size:0.72rem;font-weight:600;color:var(--muted);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.05em;">Password</label>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          style="
+            display: block;
+            width: 100%;
+            padding: 0.78rem 1rem;
+            font-size: 16px;
+            font-family: inherit;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: var(--text);
+            outline: none;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+            cursor: text;
+            position: relative;
+            z-index: 2;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          "
+        >
+      </div>
+      <div id="loginError" style="display:none; color:#e12d3d; font-size:0.8rem; margin-bottom:0.75rem; padding:0.5rem 0.75rem; background:rgba(225,45,61,0.08); border-radius:8px; border-left:3px solid #e12d3d;"></div>
+      <button
+        id="loginBtn"
+        style="
+          display: block;
+          width: 100%;
+          padding: 0.85rem;
+          font-size: 0.95rem;
+          font-weight: 700;
+          font-family: inherit;
+          background: #2563eb;
+          color: #ffffff;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          touch-action: manipulation;
+          -webkit-appearance: none;
+          appearance: none;
+          box-shadow: 0 4px 15px rgba(37,99,235,0.25);
+          margin-top: 0.25rem;
+          min-height: 50px;
+          position: relative;
+          z-index: 2;
+        "
+      >Sign In →</button>
+    </div>
+  </div>
+
+  <!-- ── MODALS ── -->
+  <div id="resetModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">&#9888;&#65039; Reset Queue</div>
+      <p style="color:var(--muted);font-size:.88rem;line-height:1.6">This will reset the current serving number and last
+        token to 0. <strong style="color:var(--red)">This cannot be undone.</strong></p>
+      <div class="modal-actions">
+        <button id="cancelResetBtn" class="btn-secondary">Cancel</button>
+        <button id="confirmResetBtn" class="btn-danger">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="billModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">&#9989; Confirm &amp; Bill</div>
+      <p style="color:var(--muted);font-size:.88rem;margin-bottom:.5rem">Review the encounter before finalising.</p>
+      <div id="billModalSummary"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;font-size:.85rem;margin-bottom:.5rem;line-height:1.8">
+      </div>
+      <p style="font-size:.78rem;color:var(--green);font-weight:600">&#128161; Bill will be automatically marked as
+        <strong>Paid</strong> on confirmation.
+      </p>
+      <div class="modal-actions">
+        <button id="cancelBillBtn" class="btn-secondary">Cancel</button>
+        <button id="confirmBillBtn" class="btn-primary">Confirm &amp; Mark Paid</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="mob-toggle" id="mobToggle" onclick="toggleSidebar()">&#9776;</button>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div id="appContent" style="display:none">
+    <aside class="sidebar">
+      <div class="sb-header">
+        <img src="resources/logo.png" alt="Care Core Logo" class="brand-logo">
+      </div>
+      <div class="sb-doctor">
+        <div class="doc-avatar" id="docAvatar">DR</div>
+        <div class="doc-info">
+          <div class="doc-name" id="doctorName">&#8212;</div>
+          <div class="doc-role">Doctor</div>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="nav-section">Overview</div>
+        <div class="nav-item active" data-page="dashboard">&#128202; Dashboard</div>
+        <div class="nav-item" data-page="appointments">📅 Appointments Schedule</div>
+        <div class="nav-section">Queue</div>
+        <div class="nav-item" data-page="queue">&#127907; Queue Controls</div>
+        <div class="nav-section">Clinical</div>
+        <div class="nav-item" data-page="encounter">&#129658; Patient Encounter</div>
+        <div class="nav-item" data-page="diagnost">&#129502; Diagnost</div>
+        <div class="nav-item" data-page="bills">&#128176; Billing Ledger</div>
+        <div class="nav-section">Clinic Admin</div>
+        <div class="nav-item" data-page="patients">&#128101; Patients</div>
+        <div class="nav-item" data-page="laboratory">&#129514; Laboratory</div>
+        <div class="nav-item" data-page="inventory">&#128138; Inventory</div>
+        <div class="nav-item" data-page="notices">&#128226; Notice Board</div>
+        <div class="nav-item" data-page="financials">💵 Financials</div>
+        <div class="nav-item" data-page="analytics">&#128200; Analytics</div>
+        <div class="nav-item" data-page="leaves">🌴 Leave Management</div>
+      </nav>
+      <div class="sb-footer">
+        <button id="themeBtn">&#127769; Toggle Theme</button>
+        <button id="logoutBtn">Sign Out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="top-bar">
+        <div class="top-title" id="pageTitle">Dashboard</div>
+        <div class="live-pill">
+          <div class="live-dot"></div>Live
+        </div>
+      </div>
+      <div class="content">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div id="page-dashboard" class="page active">
+
+          <div class="metrics-section-label">&#128994; Queue &amp; Operations</div>
+          <div class="stats-grid" style="margin-bottom:1.5rem">
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadQueueMetric()">&#8634;</button>
+              <div class="stat-label">Now Serving</div>
+              <div class="stat-value" id="nowServing">&#8212;</div>
+              <div class="stat-sub">Live token</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadQueueMetric()">&#8634;</button>
+              <div class="stat-label">Waiting</div>
+              <div class="stat-value" style="color:var(--amber)" id="waitingCount">&#8212;</div>
+              <div class="stat-sub" id="dashWaitETA">Est. wait: &#8212;</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadUniquePatients()">&#8634;</button>
+              <div class="stat-label">Total Unique Patients</div>
+              <div class="stat-value" style="color:var(--blue)" id="dashUniquePatients">&#8212;</div>
+              <div class="stat-sub">All-time registered</div>
+            </div>
+          </div>
+
+          <div class="metrics-section-label">&#128176; Financial Overview</div>
+          <div class="stats-grid" style="margin-bottom:1.5rem">
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadTotalRevenue()">&#8634;</button>
+              <div class="stat-label">Today's Revenue</div>
+              <div class="stat-value" style="color:var(--green)" id="todayRevenue">&#8377;0</div>
+              <div class="stat-sub" id="dashRevSub">Paid bills only</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadDistinctBilling()">&#8634;</button>
+              <div class="stat-label">Consultations Billed</div>
+              <div class="stat-value" style="color:var(--gold)" id="dashConsult">0</div>
+              <div class="stat-sub" id="dashConsultFee">Avg consult: &#8377;&#8212;</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadUnpaidBills()">&#8634;</button>
+              <div class="stat-label">Unpaid Bills</div>
+              <div class="stat-value" style="color:var(--red)" id="dashUnpaid">0</div>
+              <div class="stat-sub" id="dashUnpaidAmt">Outstanding: &#8377;&#8212;</div>
+            </div>
+          </div>
+
+          <div class="metrics-section-label">&#128138; Pharmacy &amp; Inventory</div>
+          <div class="stats-grid" style="margin-bottom:1.5rem">
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadMedicinesDispensed()">&#8634;</button>
+              <div class="stat-label">Medicines Dispensed</div>
+              <div class="stat-value" style="color:var(--gold)" id="dashMeds">0</div>
+              <div class="stat-sub" id="dashMedsSub">Units today</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadPharmacyRevenue()">&#8634;</button>
+              <div class="stat-label">Pharmacy Revenue</div>
+              <div class="stat-value" style="color:var(--blue)" id="dashPharmacyRev">&#8377;0</div>
+              <div class="stat-sub">Meds sold today</div>
+            </div>
+            <div class="stat-card">
+              <button class="stat-refresh" onclick="loadInventoryAlerts()">&#8634;</button>
+              <div class="stat-label">Low / Out of Stock</div>
+              <div class="stat-value" style="color:var(--amber)" id="dashLowStock">&#8212;</div>
+              <div class="stat-sub" id="dashLowStockSub">Items needing restock</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#128226; My Notice</div><button class="btn-sm"
+                onclick="navigate(otices')">Edit &rarr;</button>
+            </div>
+            <div class="card-body">
+              <div
+                style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem">
+                My Announcement</div>
+              <div class="notice-live-preview" id="dashNotice" style="margin-bottom:.75rem">Loading&hellip;</div>
+              <div
+                style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem">
+                Admin Announcement</div>
+              <div class="notice-live-preview" id="dashAdminNotice"
+                style="background:rgba(168,115,26,.06);border-color:rgba(168,115,26,.25);color:var(--gold)">
+                Loading&hellip;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ APPOINTMENTS ═══ -->
+        <div id="page-appointments" class="page">
+
+          <!-- ── Availability Scheduler Card ── -->
+          <div class="card" style="margin-bottom:1.25rem">
+            <div class="card-head">
+              <div class="card-head-title">🗓️ My Appointment Availability</div>
+              <button class="btn-sm primary" onclick="saveAvailability()">💾 Save Schedule</button>
+            </div>
+            <div class="card-body">
+              <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.55">
+                Set the days and time slots you accept appointments. Patients will only see these slots when booking.
+              </p>
+
+              <!-- Day toggles -->
+              <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.55rem">Available Days</div>
+              <div id="availDayToggles" style="display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem">
+                <!-- rendered by JS -->
+              </div>
+
+              <!-- Time slots -->
+              <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.55rem">Appointment Slots</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-bottom:.75rem">
+                <div>
+                  <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Slot Start</label>
+                  <input type="time" id="availSlotStart" value="09:00">
+                </div>
+                <div>
+                  <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Slot End</label>
+                  <input type="time" id="availSlotEnd" value="13:00">
+                </div>
+                <div>
+                  <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Duration (min)</label>
+                  <select id="availSlotDuration">
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="30" selected>30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">60 min</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem">
+                <input type="checkbox" id="availEvening" style="width:auto;cursor:pointer" onchange="toggleEveningSlot()">
+                <label for="availEvening" style="font-size:.84rem;cursor:pointer;margin:0">Add evening slot</label>
+              </div>
+              <div id="availEveningSlot" style="display:none;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.75rem">
+                <div>
+                  <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Evening Start</label>
+                  <input type="time" id="availEveStart" value="17:00">
+                </div>
+                <div>
+                  <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Evening End</label>
+                  <input type="time" id="availEveEnd" value="20:00">
+                </div>
+              </div>
+              <div>
+                <label style="font-size:.67rem;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.25rem;display:block">Max Appointments Per Day</label>
+                <input type="number" id="availMaxPerDay" value="20" min="1" max="100" style="max-width:120px">
+              </div>
+
+              <!-- Preview generated slots -->
+              <div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)">
+                <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.55rem">Slot Preview</div>
+                <div id="availSlotPreview" style="display:flex;flex-wrap:wrap;gap:.35rem;max-height:110px;overflow-y:auto"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Pending Appointments (Approve / Reject) ── -->
+          <div class="card" style="margin-bottom:1.25rem">
+            <div class="card-head">
+              <div class="card-head-title">🔔 Pending Approval <span id="pendingApptBadge" style="background:var(--red);color:#fff;font-size:.6rem;padding:.1rem .45rem;border-radius:8px;font-weight:700;margin-left:.4rem;display:none">0</span></div>
+              <button class="btn-sm" onclick="loadAppointmentsDoctor()">&#8634; Refresh</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Date / Time</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pendingApptTbody">
+                  <tr><td colspan="4" class="tbl-empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── All Appointments Table ── -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">📅 All Appointments</div>
+              <div style="display:flex;gap:.5rem;align-items:center">
+                <select id="apptFilterStatus" onchange="loadAppointmentsDoctor()" style="padding:.35rem .6rem;font-size:.8rem;height:auto;width:auto">
+                  <option value="">All Status</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Date/Time</th>
+                    <th>Token No</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="appointmentsDoctorTbody">
+                  <tr>
+                    <td colspan="5" class="tbl-empty">Loading appointments...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ QUEUE ═══ -->
+        <div id="page-queue" class="page">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#127907; Queue Controls</div>
+            </div>
+            <div class="card-body">
+              <div class="actions-bar">
+                <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                  <button id="callNextBtn" class="btn-primary">&#128226; Call Next Patient</button>
+                  <button id="skipBtn" class="btn-secondary">&#9197; Skip Token</button>
+                  <button id="recallBtn" class="btn-secondary">&#128257; Recall Current</button>
+                </div>
+                <button id="resetQueueBtn" class="btn-danger">&#128260; Reset Queue</button>
+              </div>
+              <!-- Real-time queue status strip -->
+              <div class="queue-status-strip">
+                <div class="qs-item serving">
+                  <div class="qs-label">Now Serving</div>
+                  <div class="qs-value" id="qNowServing">&#8212;</div>
+                </div>
+                <div class="qs-item waiting">
+                  <div class="qs-label">In Queue</div>
+                  <div class="qs-value" id="qWaiting">&#8212;</div>
+                </div>
+                <div class="qs-item eta">
+                  <div class="qs-label">Est. Wait Time</div>
+                  <div class="qs-value" id="qETA">&#8212; min</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ENCOUNTER ═══ -->
+        <div id="page-encounter" class="page">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#129658; Patient Encounter</div>
+            </div>
+            <div class="card-body">
+              <div
+                style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.5rem">
+                Vitals</div>
+              <div class="vitals-grid"
+                style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 0.85rem;">
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">Temp (&deg;F)</label><input
+                    type="number" id="temp" placeholder="98.6"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">BP (mmHg)</label><input type="text"
+                    id="bp" placeholder="120/80"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">Pulse (bpm)</label><input
+                    type="number" id="pulse" placeholder="72"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">SpO&#8322; (%)</label><input
+                    type="number" id="spo2" placeholder="98"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">Weight (kg)</label><input
+                    type="number" id="weight" step="0.1" placeholder="70" oninput="calcBMI()"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">Height (cm)</label><input
+                    type="number" id="height" step="0.1" placeholder="170" oninput="calcBMI()"></div>
+                <div class="fl" style="margin:0"><label style="font-size:0.6rem;">BMI</label><input type="number"
+                    id="bmi" placeholder="24.2" readonly
+                    style="opacity:0.75; cursor:not-allowed; background:var(--surface2);"></div>
+              </div>
+              <hr class="section-divider">
+              <!-- Notes Templates Section -->
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:.75rem; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:.75rem 1rem; margin-bottom:1rem; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:.5rem;">
+                  <span style="font-size:1rem;">📋</span>
+                  <strong style="font-size:.85rem;">Encounter Templates:</strong>
+                  <select id="templateSelect" style="width:200px; padding:.4rem .6rem; font-size:.82rem; height: auto;" onchange="loadTemplateSelected()">
+                    <option value="">— Load Template —</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:.5rem;">
+                  <input type="text" id="newTemplateName" placeholder="Template Name..." style="width:160px; padding:.4rem .6rem; font-size:.82rem;">
+                  <button class="btn-primary" onclick="saveCurrentAsTemplate()" style="padding:.4rem .85rem; font-size:.82rem;">💾 Save Current</button>
+                </div>
+              </div>
+
+              <div
+                style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:.5rem">
+                Clinical Notes &amp; Observations</div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.6rem;">
+                <div style="position:relative; display:flex; flex-direction:column;">
+                  <textarea id="complaints" rows="3" placeholder="Chief Complaints *"></textarea>
+                  <div id="complaintsAutocomplete" class="autocomplete-suggestions"></div>
+                </div>
+                <textarea id="observations" rows="3"
+                  placeholder="Clinical Observations / Physical Examination"></textarea>
+              </div>
+              <div
+                style="display:grid; grid-template-columns: 1.5fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items:stretch;">
+                <!-- Diagnosis field -->
+                <div style="position:relative; display:flex; flex-direction:column;">
+                  <div class="diag-field-wrap" style="width:100%">
+                    <span class="diag-icon">🩺</span>
+                    <input id="diagnosis" placeholder="Diagnosis / Assessment *" class="diag-input" autocomplete="off">
+                  </div>
+                  <div id="diagnosisAutocomplete" class="autocomplete-suggestions"></div>
+                </div>
+                <!-- Follow-up date field -->
+                <div class="followup-field-wrap">
+                  <div class="followup-label-row">
+                    <span style="font-size:.8rem;">📅</span>
+                    <span class="followup-label-text">Follow-Up Date</span>
+                  </div>
+                  <input type="date" id="followUpDate" class="followup-date-input">
+                </div>
+              </div>
+              <textarea id="rxNotes" rows="2" placeholder="Encounter clinical notes / Internal advice / Instructions"
+                style="margin-bottom:.85rem"></textarea>
+              <hr class="section-divider">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem">
+                <div
+                  style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.06em">
+                  Prescribed Medications</div>
+                <div style="font-size:.75rem;color:var(--muted)">Items are deducted from inventory on billing</div>
+              </div>
+              <div class="form-row" style="margin-bottom:.75rem;align-items:flex-start">
+                <div class="med-dropdown-wrap" id="medDropdownWrap">
+                  <div class="med-dropdown-trigger" id="medDropdownTrigger" onclick="toggleMedDropdown()">
+                    <span class="med-trigger-text placeholder" id="medTriggerText">Select medication from
+                      clinic&hellip;</span>
+                    <span class="med-trigger-chevron">&#9660;</span>
+                  </div>
+                  <div class="med-dropdown-panel" id="medDropdownPanel">
+                    <div class="med-search-bar">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                      </svg>
+                      <input class="med-search-input" id="medSearchInput"
+                        placeholder="Search by name or generic&hellip;" oninput="filterMedDropdown()"
+                        autocomplete="off">
+                    </div>
+                    <div class="med-category-bar" id="medCategoryBar">
+                      <button class="med-cat-chip active" onclick="filterByCategory(this,'all')">All</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'tablet')">Tablets</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'injectable')">Injectables</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'syrup')">Syrups</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'ointment')">Ointments</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'drops')">Drops</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'bandage')">Bandage</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'equipment')">Equipment</button>
+                      <button class="med-cat-chip" onclick="filterByCategory(this,'other')">Other</button>
+                    </div>
+                    <div class="med-list" id="medList">
+                      <div class="med-empty">Loading inventory&hellip;</div>
+                    </div>
+                  </div>
+                </div>
+                <input id="medQty" type="number" value="1" min="1" class="qty-input" placeholder="Qty"
+                  style="width:80px;flex:none">
+                <div class="dosage-field-wrap" style="flex:2;display:flex;align-items:center;gap:0;position:relative;">
+                  <span class="dosage-icon">💊</span>
+                  <input id="medDosage" placeholder="e.g. 1 tab · twice daily · after meals" class="dosage-input">
+                </div>
+                <button id="addMedBtn" class="btn-primary" style="flex:none">+ Add</button>
+              </div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th>Medicine</th>
+                      <th>Category</th>
+                      <th>Qty</th>
+                      <th>Unit Price</th>
+                      <th>Total</th>
+                      <th>Dosage</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="prescriptionList">
+                    <tr>
+                      <td colspan="7" class="tbl-empty">No medications added yet</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="tbl-total">
+                <div style="font-size:.8rem;color:var(--muted)">Consultation fee added on billing</div>
+                <div style="font-weight:600;font-size:1rem">Meds Total: <span id="pharmacyTotal"
+                    style="color:var(--gold);font-family:'JetBrains Mono',monospace">&#8377;0</span></div>
+              </div>
+              <hr class="section-divider">
+              <!-- Lab Report Attachment -->
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem">
+                <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.06em">
+                  📎 Attach Lab Report <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span>
+                </div>
+              </div>
+              <div id="encounterLabAttachWrap">
+                <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;margin-bottom:.55rem">
+                  <button type="button" class="btn-primary" id="encounterLabDbBtn"
+                    onclick="openEncounterLabPicker()"
+                    style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem">
+                    🗂️ Select from Database
+                  </button>
+                  <button type="button" class="btn-secondary" id="encounterLabAttachBtn"
+                    onclick="document.getElementById('encounterLabFileInput').click()"
+                    style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem">
+                    📂 Upload New File
+                  </button>
+                  <span style="font-size:.75rem;color:var(--muted)">PDF, JPG, PNG — max 10 MB</span>
+                </div>
+                <input type="file" id="encounterLabFileInput" accept=".pdf,.jpg,.jpeg,.png" multiple style="display:none"
+                  onchange="handleEncounterLabFile(this.files)">
+                <!-- Selected DB reports tags -->
+                <div id="encounterLabDbTags" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.3rem"></div>
+                <!-- Uploaded new files list -->
+                <div id="encounterLabFileList"></div>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+                <button id="completeBtn" class="btn-primary" style="font-size:.95rem;padding:.7rem 1.5rem">&#9989;
+                  Complete &amp; Bill</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ DIAGNOST ═══ -->
+        <div id="page-diagnost" class="page">
+          <div class="card" style="margin-bottom:1.25rem">
+            <div class="card-head">
+              <div class="card-head-title">&#129502; Diagnost &mdash; Patient Search</div>
+            </div>
+            <div class="card-body">
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:.85rem">
+                Search by mobile number to view a patient's diagnosts and add a new or continuing session.
+              </div>
+              <div class="form-row" style="gap:.6rem">
+                <input type="text" id="diagSearchMobile" placeholder="Enter mobile number&hellip;"
+                  inputmode="numeric" style="flex:1" onkeyup="if(event.key==='Enter') diagSearchPatient()">
+                <button class="btn-primary" onclick="diagSearchPatient()">&#128269; Search</button>
+              </div>
+              <div id="diagSearchResults" style="margin-top:.85rem"></div>
+            </div>
+          </div>
+
+          <!-- Patient dashboard (hidden until a patient is selected) -->
+          <div id="diagPatientDashboard" style="display:none">
+            <div class="card" style="margin-bottom:1.25rem">
+              <div class="card-head">
+                <div class="card-head-title">&#128100; <span id="diagPatName">&mdash;</span></div>
+                <button class="btn-sm" onclick="diagBackToSearch()">&larr; New Search</button>
+              </div>
+              <div class="card-body">
+                <div id="diagPatMeta" style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">&mdash;</div>
+                <button class="btn-primary" onclick="openNewDiagnostModal()">&#10133; Start New Diagnost</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div class="card-head-title">&#128203; Past &amp; Active Diagnosts</div>
+              </div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th>Diagnosis</th>
+                      <th>Status</th>
+                      <th>Started</th>
+                      <th>Sessions</th>
+                      <th>Last Session</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diagDiagnostsList">
+                    <tr><td colspan="6" class="tbl-empty">No diagnosts yet for this patient.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ BILLS ═══ -->
+        <div id="page-bills" class="page">
+          <!-- Independent financial summary strip -->
+          <div class="bills-summary">
+            <div class="bills-summary-item">
+              <div class="bsi-label">Total Revenue</div>
+              <div class="bsi-value" style="color:var(--green)" id="billsTotalRevenue">&#8377;&#8212;</div>
+            </div>
+            <div class="bills-summary-item">
+              <div class="bsi-label">Distinct Bills</div>
+              <div class="bsi-value" style="color:var(--gold)" id="billsDistinctCount">&#8212;</div>
+            </div>
+            <div class="bills-summary-item">
+              <div class="bsi-label">Unpaid Outstanding</div>
+              <div class="bsi-value" style="color:var(--red)" id="billsUnpaidTotal">&#8377;&#8212;</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#128176; Billing Ledger</div>
+              <button class="btn-sm" onclick="loadBills()">&#8634; Refresh</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Token</th>
+                    <th>Patient</th>
+                    <th>Consultation</th>
+                    <th>Pharmacy</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="billsList">
+                  <tr>
+                    <td colspan="7" class="tbl-empty">Loading&hellip;</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PATIENTS ═══ -->
+        <div id="page-patients" class="page">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#128101; All Patients</div>
+              <div style="display:flex;gap:.6rem;align-items:center">
+                <span style="font-size:.75rem;color:var(--muted)">Total: <strong id="patientsTotal"
+                    style="color:var(--text)">&#8212;</strong></span>
+                <input type="text" id="patientSearch" style="width:200px" placeholder="Search patients&hellip;"
+                  oninput="filterPatients()">
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Contact</th>
+                    <th>Total Visits</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="patientsList">
+                  <tr>
+                    <td colspan="6" class="tbl-empty">Loading&hellip;</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ LABORATORY ═══ -->
+        <div id="page-laboratory" class="page">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#129514; Laboratory</div>
+              <button class="btn-sm" onclick="loadLabOrders()">&#8634; Refresh</button>
+            </div>
+            <div class="card-body">
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Order lab tests for patients currently
+                in the queue, or upload completed lab report files to patient profiles.</div>
+
+              <!-- Quick Order Panel -->
+              <div class="lab-order-form">
+                <div
+                  style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.65rem">
+                  &#128203; Quick Lab Order</div>
+                <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:.75rem">
+                  <div class="fl" style="margin:0"><label>Patient Search</label><input type="text" id="labQuickPatient"
+                      placeholder="Type name or contact&hellip;" oninput="filterLabPatients()"></div>
+                  <div class="fl" style="margin:0"><label>Select Patient</label>
+                    <select id="labPatientSelect">
+                      <option value="">&#8212; Select patient &#8212;</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="fl" style="margin-bottom:.65rem">
+                  <label>Select Tests to Order</label>
+                  <div class="lab-test-grid" id="quickLabTestGrid"></div>
+                </div>
+                <div class="fl" style="margin-bottom:.65rem"><label>Clinical Notes</label><textarea id="quickLabNotes"
+                    rows="2" placeholder="Urgency, fasting status, special instructions&hellip;"></textarea></div>
+
+                <!-- File Upload Section -->
+                <div
+                  style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:1rem 0 .6rem">
+                  &#128196; Attach Report Files (optional)</div>
+                <div class="lab-upload-zone" id="quickLabDropZone"
+                  onclick="document.getElementById('quickLabFileInput').click()">
+                  <div class="upload-icon">&#128196;</div>
+                  <div class="upload-label">Click to browse or drag &amp; drop lab result files</div>
+                  <div class="upload-hint">PDF, JPG, PNG &mdash; max 10 MB per file</div>
+                </div>
+                <input type="file" id="quickLabFileInput" accept=".pdf,.jpg,.jpeg,.png" multiple style="display:none"
+                  onchange="handleQuickLabFile(this.files)">
+                <div class="lab-file-list" id="quickLabFileList"></div>
+
+                <div style="margin-top:.85rem">
+                  <button class="btn-primary" onclick="placeQuickLabOrder()">&#129514; Submit Lab Order</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lab Orders Table -->
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Patient</th>
+                    <th>Tests Ordered</th>
+                    <th>Notes</th>
+                    <th>Status</th>
+                    <th>Files</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="labOrdersList">
+                  <tr>
+                    <td colspan="7" class="tbl-empty">No lab orders yet</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ INVENTORY ═══ -->
+        <div id="page-inventory" class="page">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#128138; Inventory</div>
+              <button class="btn-sm" onclick="loadInventory()">&#8634; Refresh</button>
+            </div>
+            <div class="card-body">
+              <div class="inv-tabs">
+                <button class="inv-tab active" onclick="switchInvTab('add')">&#10133; Add New Item</button>
+                <button class="inv-tab" onclick="switchInvTab('edit')">&#9998; Edit Existing</button>
+              </div>
+              <div id="invPanelAdd" class="inv-panel active">
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Add a new medication, injectable,
+                  bandage, or any supply to the inventory.</div>
+                <div class="form-grid">
+                  <div class="fl" style="margin:0"><label>Item Name *</label><input type="text" id="newInvName"
+                      placeholder="e.g. Amoxicillin 500mg"></div>
+                  <div class="fl" style="margin:0"><label>Generic Name</label><input type="text" id="newInvGeneric"
+                      placeholder="e.g. Amoxicillin"></div>
+                  <div class="fl" style="margin:0">
+                    <label>Category *</label>
+                    <select id="newInvCategory">
+                      <option value="">Select category&hellip;</option>
+                      <option value="tablet">Tablet / Capsule</option>
+                      <option value="injectable">Injectable</option>
+                      <option value="syrup">Syrup / Liquid</option>
+                      <option value="bandage">Bandage / Dressing</option>
+                      <option value="equipment">Equipment / Device</option>
+                      <option value="ointment">Ointment / Cream</option>
+                      <option value="drops">Drops (Eye/Ear/Nasal)</option>
+                      <option value="other">Other Supply</option>
+                    </select>
+                  </div>
+                  <div class="fl" style="margin:0"><label>Unit of Measure</label><input type="text" id="newInvUnit"
+                      placeholder="e.g. strips, vials, pieces"></div>
+                  <div class="fl" style="margin:0"><label>Initial Stock *</label><input type="number" id="newInvStock"
+                      placeholder="0" min="0"></div>
+                  <div class="fl" style="margin:0"><label>Unit Price (&#8377;) *</label><input type="number"
+                      id="newInvPrice" placeholder="0.00" min="0" step="0.01"></div>
+                  <div class="fl" style="margin:0"><label>Low-Stock Threshold</label><input type="number"
+                      id="newInvThreshold" placeholder="5" min="0"></div>
+                  <div class="fl" style="margin:0"><label>Manufacturer</label><input type="text" id="newInvMfr"
+                      placeholder="(optional)"></div>
+                </div>
+                <button class="btn-primary" onclick="addNewInventory()">&#10133; Add to Inventory</button>
+              </div>
+              <div id="invPanelEdit" class="inv-panel">
+                <div style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Select an item from the table
+                  below using the Edit button, then update its details here.</div>
+                <div class="form-grid">
+                  <div class="fl" style="margin:0"><label>Item ID</label><input type="text" id="invId"
+                      placeholder="(auto-filled)" readonly style="opacity:.6;cursor:not-allowed"></div>
+                  <div class="fl" style="margin:0"><label>Name</label><input type="text" id="invName"
+                      placeholder="Item name"></div>
+                  <div class="fl" style="margin:0"><label>Stock Level</label><input type="number" id="invStock"
+                      placeholder="Stock"></div>
+                  <div class="fl" style="margin:0"><label>Unit Price (&#8377;)</label><input type="number" id="invPrice"
+                      placeholder="Price"></div>
+                  <div class="fl" style="margin:0"><label>Low-Stock Threshold</label><input type="number"
+                      id="invThreshold" placeholder="Threshold"></div>
+                </div>
+                <button class="btn-primary" onclick="saveInv()">&#128190; Save Changes</button>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Unit</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryList">
+                  <tr>
+                    <td colspan="7" class="tbl-empty">Loading&hellip;</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ NOTICES ═══ -->
+        <div id="page-notices" class="page">
+          <div class="card" style="margin-bottom:1rem">
+            <div class="card-head">
+              <div class="card-head-title">&#128226; My Notice Board</div>
+            </div>
+            <div class="card-body">
+              <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">Post an announcement visible only to
+                patients who select <strong>your</strong> queue.</p>
+              <textarea id="noticeInput" rows="3" placeholder="Type your announcement here&hellip;"></textarea>
+              <div class="notice-actions">
+                <button id="saveNoticeBtn" class="btn-primary" style="flex:1">&#128225; Broadcast to My
+                  Patients</button>
+                <button id="clearNoticeBtn" class="btn-sm">Clear</button>
+              </div>
+              <div
+                style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:.95rem 0 .3rem">
+                Live Preview</div>
+              <div class="notice-live-preview" id="noticeDisplay">Loading&hellip;</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#127973; Admin Notice <span
+                  style="font-size:.72rem;font-weight:400;color:var(--muted);margin-left:.4rem">(broadcast to
+                  all)</span></div>
+            </div>
+            <div class="card-body">
+              <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">This notice is set by the clinic admin
+                and shown on every doctor's notice board.</p>
+              <div class="notice-live-preview" id="adminNoticeDisplay"
+                style="background:rgba(168,115,26,.06);border-color:rgba(168,115,26,.25);color:var(--gold)">
+                Loading&hellip;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ FINANCIALS ═══ -->
+        <div id="page-financials" class="page">
+          <div class="card" style="margin-bottom:1.5rem">
+            <div class="card-head">
+              <div class="card-head-title">💵 Daily Cash Register / EOD Report</div>
+              <div style="display:flex;gap:.5rem;align-items:center">
+                <input type="date" id="doctorRegisterDate" style="width:140px;padding:.38rem .75rem;font-size:.82rem" onchange="loadDoctorCashRegister()">
+                <button class="btn-sm" onclick="loadDoctorCashRegister()">&#8634; Refresh</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="stats-grid" style="margin-bottom:1.25rem">
+                <div class="stat-card" style="padding:.95rem">
+                  <div class="stat-label" style="font-size:.62rem">Total Billed</div>
+                  <div class="stat-value" id="docRegBilled" style="font-size:1.6rem">&#8377;0</div>
+                </div>
+                <div class="stat-card" style="padding:.95rem">
+                  <div class="stat-label" style="font-size:.62rem">Collected Revenue</div>
+                  <div class="stat-value" id="docRegCollected" style="font-size:1.6rem;color:var(--green)">&#8377;0</div>
+                </div>
+                <div class="stat-card" style="padding:.95rem">
+                  <div class="stat-label" style="font-size:.62rem">Pending Dues</div>
+                  <div class="stat-value" id="docRegPending" style="font-size:1.6rem;color:var(--red)">&#8377;0</div>
+                </div>
+              </div>
+              <div class="stats-grid" style="margin-bottom:1.25rem; grid-template-columns: 1fr 1fr;">
+                <div class="stat-card" style="padding:.95rem">
+                  <div class="stat-label" style="font-size:.62rem">Total Expenses</div>
+                  <div class="stat-value" id="docRegExpenses" style="font-size:1.6rem;color:var(--amber)">&#8377;0</div>
+                </div>
+                <div class="stat-card" style="padding:.95rem">
+                  <div class="stat-label" style="font-size:.62rem">Net Profit</div>
+                  <div class="stat-value" id="docRegProfit" style="font-size:1.6rem;color:var(--blue)">&#8377;0</div>
+                </div>
+              </div>
+
+              <div class="metrics-section-label" style="margin-top:1.2rem;margin-bottom:.55rem">Payment Method Breakdown</div>
+              <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:1.2rem;" id="docRegBreakdown">
+                <!-- Populated by JS -->
+              </div>
+
+              <div class="metrics-section-label" style="margin-top:1rem;margin-bottom:.55rem">Today's Transactions</div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th>Token</th>
+                      <th>Patient</th>
+                      <th>Total Amount</th>
+                      <th>Status</th>
+                      <th>Method</th>
+                    </tr>
+                  </thead>
+                  <tbody id="docRegTransactions">
+                    <tr>
+                      <td colspan="5" class="tbl-empty">No transactions logged for this date.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ANALYTICS ═══ -->
+        <div id="page-analytics" class="page">
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">&#128200; Analytics (Last 30 Days)</div><button class="btn-sm"
+                onclick="loadAnalytics()">&#8634; Refresh</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Tokens</th>
+                    <th>Consultations</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsTable">
+                  <tr>
+                    <td colspan="4" class="tbl-empty">Loading&hellip;</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ LEAVES ═══ -->
+        <div id="page-leaves" class="page">
+          <div class="card" style="margin-bottom:1rem">
+            <div class="card-head">
+              <div class="card-head-title">🌴 Leave Management</div>
+            </div>
+            <div class="card-body">
+              <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">Mark days you will not be available. On these days, the queue will display "Not Available" and check-ins will be blocked.</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;align-items:end;margin-bottom:1.2rem">
+                <div class="fl" style="margin:0">
+                  <label>Leave Date</label>
+                  <input type="date" id="leaveDateInput">
+                </div>
+                <div class="fl" style="margin:0">
+                  <label>Reason (optional)</label>
+                  <input type="text" id="leaveReasonInput" placeholder="e.g. Medical conference, personal leave">
+                </div>
+              </div>
+              <button class="btn-primary" onclick="markLeaveDay()">🌴 Mark Leave Day</button>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-head">
+              <div class="card-head-title">Scheduled Leaves</div>
+              <button class="btn-sm" onclick="loadDoctorLeaves()">&#8634; Refresh</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="leavesList">
+                  <tr>
+                    <td colspan="3" class="tbl-empty">No scheduled leaves</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /appContent -->
+
+  <!-- ── LAB ORDER MODAL ── -->
+  <div id="labOrderModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:520px">
+      <div class="modal-title">🧪 Order Lab Tests</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">Select tests to order for the current patient.
+        The request will be logged to their profile.</p>
+      <div class="fl"><label>Patient Name / ID</label><input type="text" id="labPatientRef"
+          placeholder="Patient name or ID" readonly style="opacity:.7"></div>
+      <div class="fl">
+        <label>Select Tests</label>
+        <div class="lab-test-grid" id="labTestGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="fl"><label>Clinical Notes / Urgency</label><textarea id="labOrderNotes" rows="2"
+          placeholder="e.g. Fasting sample, urgent — rule out DM"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-secondary"
+          onclick="document.getElementById('labOrderModal').classList.remove('open')">Cancel</button>
+        <button class="btn-primary" onclick="submitLabOrder()">🧪 Place Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PATIENT PROFILE MODAL ── -->
+  <div id="patientProfileModal" class="patient-profile-overlay">
+    <div class="patient-profile-box">
+      <div class="ppb-header">
+        <div class="ppb-avatar" id="ppbAvatar">P</div>
+        <div>
+          <div class="ppb-name" id="ppbName">Patient Name</div>
+          <div class="ppb-meta" id="ppbMeta">—</div>
+        </div>
+        <button class="ppb-close" onclick="closePatientProfile()">✕</button>
+      </div>
+      <div class="ppb-tabs">
+        <button class="ppb-tab active" onclick="switchPPTab('demographics',this)">👤 Demographics</button>
+        <button class="ppb-tab" onclick="switchPPTab('encounters',this)">📋 Encounters</button>
+        <button class="ppb-tab" onclick="switchPPTab('prescriptions',this)">💊 Prescriptions</button>
+        <button class="ppb-tab" onclick="switchPPTab('labs',this)">🧪 Lab Reports</button>
+      </div>
+      <div class="ppb-body">
+        <!-- Demographics -->
+        <div class="ppb-panel active" id="pp-demographics">
+          <div class="demo-grid" id="ppDemoGrid">
+            <div style="color:var(--muted);font-size:.85rem">Loading…</div>
+          </div>
+          <div class="section-heading">Medical History</div>
+          <div id="ppMedHistory" style="font-size:.86rem;color:var(--muted);line-height:1.7">—</div>
+          <div class="section-heading" style="margin-top:1rem">Known Allergies</div>
+          <div id="ppAllergies" style="font-size:.86rem;color:var(--muted)">—</div>
+        </div>
+        <!-- Encounters -->
+        <div class="ppb-panel" id="pp-encounters">
+          <div id="ppEncountersList">
+            <div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem">Loading…</div>
+          </div>
+        </div>
+        <!-- Prescriptions -->
+        <div class="ppb-panel" id="pp-prescriptions">
+          <div id="ppRxList">
+            <div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem">Loading…</div>
+          </div>
+        </div>
+        <!-- Lab Reports -->
+        <div class="ppb-panel" id="pp-labs">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+            <div style="font-size:.8rem;color:var(--muted)">Ordered &amp; uploaded lab reports for this patient</div>
+            <button class="btn-sm primary" onclick="openUploadForPatient()">⬆ Upload Report</button>
+          </div>
+          <div id="ppLabsList">
+            <div style="color:var(--muted);font-size:.85rem;text-align:center;padding:2rem">Loading…</div>
+          </div>
+          <!-- Patient self-uploaded reports -->
+          <div
+            style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;gap:.5rem;margin:1.1rem 0 .65rem;">
+            <span>📤 Uploaded by Patient</span>
+            <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+          </div>
+          <div id="ppPatientUploads">
+            <div style="color:var(--muted);font-size:.82rem;font-style:italic;padding:.5rem 0">Select the Labs tab to
+              load patient-uploaded reports.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LAB UPLOAD MODAL ── -->
+  <div id="labUploadModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-title">⬆ Upload Lab Report</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:.9rem">Attach a lab result file to the patient's
+        profile. PDF and image formats supported.</p>
+      <div class="fl"><label>Report Title / Test Name</label><input type="text" id="uploadReportTitle"
+          placeholder="e.g. Complete Blood Count — 24 May 2026"></div>
+      <div class="lab-upload-zone" id="labDropZone" onclick="document.getElementById('labFileInput').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-label">Click to browse or drag & drop</div>
+        <div class="upload-hint">PDF, JPG, PNG — max 10 MB</div>
+      </div>
+      <input type="file" id="labFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+        onchange="handleLabFileSelect(this.files)">
+      <div class="lab-file-list" id="labSelectedFiles"></div>
+      <div class="fl" style="margin-top:.75rem"><label>Notes (optional)</label><textarea id="uploadNotes" rows="2"
+          placeholder="Additional context, reference ranges, etc."></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-secondary"
+          onclick="document.getElementById('labUploadModal').classList.remove('open')">Cancel</button>
+        <button class="btn-primary" onclick="saveLabUpload()">💾 Save Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- ── ENCOUNTER LAB PICKER MODAL ── -->
+  <div id="encounterLabPickerModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:560px">
+      <div class="modal-title">🗂️ Select Lab Report from Database</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">
+        Choose one or more existing lab reports for this patient to attach to the encounter.
+      </p>
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+        <input type="text" id="labPickerSearch" placeholder="Search by report title or date…"
+          style="flex:1" oninput="filterLabPickerList()">
+      </div>
+      <div id="labPickerList"
+        style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface2)">
+        <div style="padding:2rem;text-align:center;color:var(--muted);font-size:.84rem">Loading reports…</div>
+      </div>
+      <div class="modal-actions" style="margin-top:.85rem">
+        <button class="btn-secondary"
+          onclick="document.getElementById('encounterLabPickerModal').classList.remove('open')">Cancel</button>
+        <button class="btn-primary" onclick="confirmLabPickerSelection()">✔ Attach Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIAGNOST: NEW DIAGNOST MODAL ── -->
+  <div id="newDiagnostModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:560px">
+      <div class="modal-title">&#129502; Start New Diagnost</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">
+        Creates a new treatment episode for <strong id="newDiagPatLabel">this patient</strong>.
+        Optionally record today's first session in the same step.
+      </p>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:.6rem">
+        <div class="fl" style="margin:0"><label>Diagnosis Title *</label>
+          <input type="text" id="ndTitle" placeholder="e.g. Type 2 Diabetes Management"></div>
+        <div class="fl" style="margin:0"><label>Diagnosis Code (optional)</label>
+          <input type="text" id="ndCode" placeholder="e.g. E11.9"></div>
+      </div>
+      <div class="fl" style="margin-bottom:.6rem"><label>Description</label>
+        <textarea id="ndDescription" rows="2" placeholder="Brief description of the condition"></textarea></div>
+      <div class="fl" style="margin-bottom:.6rem"><label>Treatment Plan</label>
+        <textarea id="ndPlan" rows="2" placeholder="Planned course of treatment"></textarea></div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:.6rem">
+        <div class="fl" style="margin:0"><label>Planned Sessions (optional)</label>
+          <input type="number" id="ndPlannedSessions" min="1" placeholder="e.g. 6"></div>
+        <div class="fl" style="margin:0"><label>Started On *</label>
+          <input type="date" id="ndStartedAt"></div>
+      </div>
+      <hr class="section-divider">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem">
+        <input type="checkbox" id="ndIncludeFirstSession" style="width:auto;cursor:pointer" checked
+          onchange="document.getElementById('ndFirstSessionFields').style.display = this.checked ? 'block' : 'none'">
+        <label for="ndIncludeFirstSession" style="font-size:.84rem;cursor:pointer;margin:0">Record today's first session now</label>
+      </div>
+      <div id="ndFirstSessionFields">
+        <div class="fl" style="margin-bottom:.6rem"><label>Session Date</label>
+          <input type="date" id="ndSessionDate"></div>
+        <div class="fl" style="margin-bottom:.6rem"><label>Findings</label>
+          <textarea id="ndFindings" rows="2" placeholder="Clinical findings for this session"></textarea></div>
+        <div class="fl"><label>Notes</label>
+          <textarea id="ndNotes" rows="2" placeholder="Additional notes"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="document.getElementById(ewDiagnostModal').classList.remove('open')">Cancel</button>
+        <button class="btn-primary" onclick="submitNewDiagnost()">&#128190; Create Diagnost</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIAGNOST: ADD SESSION MODAL ── -->
+  <div id="addSessionModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-title">&#9658; Continue Session</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:.75rem">
+        Adding the next session to <strong id="asDiagnosisLabel">&mdash;</strong>.
+      </p>
+      <div class="fl" style="margin-bottom:.6rem"><label>Session Date *</label>
+        <input type="date" id="asSessionDate"></div>
+      <div class="fl" style="margin-bottom:.6rem"><label>Findings</label>
+        <textarea id="asFindings" rows="3" placeholder="Clinical findings for this session"></textarea></div>
+      <div class="fl"><label>Notes</label>
+        <textarea id="asNotes" rows="2" placeholder="Additional notes"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="document.getElementById('addSessionModal').classList.remove('open')">Cancel</button>
+        <button class="btn-primary" onclick="submitAddSession()">&#9989; Save Session</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="doctor.js"></script>
+  <script src="ai-widget.js"></script>`n  <script src="telehealth-call.js"></script>`n  <script src="global-nav.js"></script>`n</body>
+
+</html>
+
+
+
+
+

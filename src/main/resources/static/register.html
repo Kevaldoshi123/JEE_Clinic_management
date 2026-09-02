@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Clinic — Doctor Registration Wizard</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.9);
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(37, 99, 235, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: rgba(30, 41, 59, 0.85);
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary-light: rgba(37, 99, 235, 0.15);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Top Nav */
+    .nav-bar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-logo-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Wizard Container (Glassmorphism) */
+    .wizard-container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    /* Stepper Bar */
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .stepper::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .stepper-progress {
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      height: 2px;
+      background: var(--primary);
+      z-index: 1;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+
+    .step-item.active .step-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+    }
+
+    .step-item.completed .step-circle {
+      border-color: #10b981;
+      background: #10b981;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .step-item.active .step-label {
+      color: var(--primary);
+    }
+
+    /* Form Step Panels */
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .input-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .toggle-group input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    /* Buttons Footer */
+    .wizard-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary-light);
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      display: none;
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full-width { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav-bar">
+    <a href="portal.html" class="brand-logo">
+      <div class="brand-logo-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+      <span>Care<span style="color:var(--primary);">Core</span></span>
+    </a>
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
+      <i class="bi bi-moon"></i> Dark Mode
+    </button>
+  </div>
+
+  <div class="wizard-container">
+
+    <!-- Stepper Header -->
+    <div class="stepper">
+      <div class="stepper-progress" id="stepperProgress"></div>
+      
+      <div class="step-item active" id="stepIndicator1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Personal Info</div>
+      </div>
+      
+      <div class="step-item" id="stepIndicator2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Medical Details</div>
+      </div>
+      
+      <div class="step-item" id="stepIndicator3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Professional Setup</div>
+      </div>
+    </div>
+
+    <!-- Form Start -->
+    <form id="doctorWizardForm">
+
+      <!-- STEP 1: Personal Information -->
+      <div class="step-panel active" id="stepPanel1">
+        <div class="section-title">Step 1: Personal Information</div>
+        <div class="section-desc">Enter your basic personal details and account credentials.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="fullName" placeholder="Dr. John Doe" required>
+          </div>
+
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="email" placeholder="doctor@carecore.com" required>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="tel" id="phone" placeholder="+91 98765 43210" required>
+          </div>
+
+          <div class="form-group">
+            <label>Gender *</label>
+            <select id="gender" required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Date of Birth *</label>
+            <input type="date" id="dateOfBirth" required>
+          </div>
+
+          <div class="form-group">
+            <label>Profile Photo URL</label>
+            <input type="text" id="profilePhotoUrl" placeholder="https://example.com/photo.jpg">
+            <div class="input-hint">Paste an image link or leave blank for default avatar.</div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Residential Address *</label>
+            <textarea id="address" rows="2" placeholder="Full residential address..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Password *</label>
+            <input type="password" id="password" placeholder="••••••••" required>
+          </div>
+
+          <div class="form-group">
+            <label>Confirm Password *</label>
+            <input type="password" id="confirmPassword" placeholder="••••••••" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Medical Details -->
+      <div class="step-panel" id="stepPanel2">
+        <div class="section-title">Step 2: Medical & Academic Qualifications</div>
+        <div class="section-desc">Provide your medical license registration, council details, and experience.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Medical Registration Number *</label>
+            <input type="text" id="registrationNumber" placeholder="REG-123456" required>
+          </div>
+
+          <div class="form-group">
+            <label>Medical Council *</label>
+            <input type="text" id="medicalCouncil" placeholder="Medical Council of India / State Council" required>
+          </div>
+
+          <div class="form-group">
+            <label>Primary Qualification / Degree *</label>
+            <input type="text" id="qualification" placeholder="MBBS, MD (Dermatology)" required>
+          </div>
+
+          <div class="form-group">
+            <label>Specialization *</label>
+            <select id="specialization" required>
+              <option value="">Select Specialization</option>
+              <option value="General Medicine">General Medicine</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Dermatology">Dermatology</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Gynecology">Gynecology</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Years of Experience *</label>
+            <input type="number" id="yearsExperience" min="0" placeholder="10" required>
+          </div>
+
+          <div class="form-group">
+            <label>Hospital / Clinic Association</label>
+            <input type="text" id="hospital" placeholder="Care Core General Hospital">
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <input type="text" id="department" placeholder="Outpatient Department (OPD)">
+          </div>
+
+          <div class="form-group">
+            <label>Languages Spoken</label>
+            <input type="text" id="languagesSpoken" placeholder="English, Hindi, Gujarati">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Biography & Professional Summary</label>
+            <textarea id="profileBio" rows="3" placeholder="Brief background about your medical expertise and practice..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Professional Setup -->
+      <div class="step-panel" id="stepPanel3">
+        <div class="section-title">Step 3: Professional Consultation Setup</div>
+        <div class="section-desc">Set your consultation fee, working hours, and clinic location.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Consultation Fee (₹) *</label>
+            <input type="number" id="consultationFee" min="0" value="500" required>
+          </div>
+
+          <div class="form-group">
+            <label>Slot Duration (Minutes)</label>
+            <select id="slotDuration">
+              <option value="10">10 Minutes</option>
+              <option value="15" selected>15 Minutes</option>
+              <option value="20">20 Minutes</option>
+              <option value="30">30 Minutes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Available Working Days</label>
+            <input type="text" id="availableDays" value="Mon, Tue, Wed, Thu, Fri, Sat">
+          </div>
+
+          <div class="form-group">
+            <label>Working Hours</label>
+            <input type="text" id="workingHours" value="09:00 AM - 05:00 PM">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Clinic Physical Address *</label>
+            <textarea id="clinicAddress" rows="2" placeholder="Building No, Street, City, State, Pincode..." required>Care Core Medical Center, MG Road, Mumbai</textarea>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-group">
+              <input type="checkbox" id="isOnlineAvailable" checked>
+              <label for="isOnlineAvailable" style="margin:0;">Enable Telehealth Video Consultations</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-group">
+              <input type="checkbox" id="isOfflineAvailable" checked>
+              <label for="isOfflineAvailable" style="margin:0;">Enable In-Person Walk-in Visits</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Footer -->
+      <div class="wizard-actions">
+        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="navigateStep(-1)" style="visibility:hidden;">
+          <i class="bi bi-arrow-left"></i> Previous
+        </button>
+
+        <div>
+          <button type="button" class="btn btn-outline" onclick="saveDraft()">
+            <i class="bi bi-bookmark"></i> Save Draft
+          </button>
+          
+          <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateStep(1)">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+          
+          <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
+            Submit Application <i class="bi bi-check-circle"></i>
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="toast-msg" id="toastMsg"></div>
+
+  <!-- Include Theme & Wizard Logic Scripts -->
+  <script src="theme.js"></script>
+  <script src="register.js"></script>
+  <script src="ai-widget.js"></script>
+  <script src="telehealth-call.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>
+
+
+
+

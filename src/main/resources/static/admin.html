@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Core — Admin Control Panel</title>
+<link href="style.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- <style>
+/* ───── THEME ───── */
+:root{
+  --bg:#f0f4f8;--bg-mid:#ffffff;--surface:rgba(255,255,255,0.9);--surface2:rgba(0,0,0,0.04);
+  --border:rgba(0,0,0,0.08);--gold:#a8731a;--gold-lt:#d4a843;--gold-glow:rgba(168,115,26,0.15);
+  --text:#1a2535;--muted:#64748b;--red:#dc2626;--green:#16a34a;--amber:#d97706;--blue:#1d6fa4;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);--shadow-lg:0 8px 40px rgba(0,0,0,0.11);--radius:16px;
+  --sidebar-w:255px;
+}
+[data-theme="dark"]{
+  --bg:#08131f;--bg-mid:#0d1e30;--surface:rgba(255,255,255,0.05);--surface2:rgba(255,255,255,0.03);
+  --border:rgba(201,168,76,0.16);--gold:#c9a84c;--gold-lt:#e8c97a;--gold-glow:rgba(201,168,76,0.20);
+  --text:#eee8da;--muted:rgba(238,232,218,0.52);--red:#e05252;--green:#4caf7d;--amber:#e8a030;--blue:#5bb8f5;
+  --shadow:0 2px 12px rgba(0,0,0,0.40);--shadow-lg:0 8px 40px rgba(0,0,0,0.55);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;transition:background .35s,color .35s;overflow-x:hidden}
+
+/* bg grid */
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(168,115,26,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(168,115,26,.02) 1px,transparent 1px);background-size:56px 56px;pointer-events:none;z-index:0}
+[data-theme="dark"] .bg-grid{background-image:linear-gradient(rgba(201,168,76,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.015) 1px,transparent 1px)}
+
+/* ───── LOGIN SCREEN ───── */
+#loginScreen{
+  position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .4s ease;
+}
+.login-card{
+  width:420px;background:var(--surface);border:1px solid var(--border);border-radius:24px;
+  padding:2.5rem;box-shadow:var(--shadow-lg);backdrop-filter:blur(20px);
+}
+.login-brand{text-align:center;margin-bottom:2rem}
+.login-brand h1{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold)}
+.login-brand p{font-size:.8rem;color:var(--muted);margin-top:.3rem;letter-spacing:.05em;text-transform:uppercase}
+.form-group{margin-bottom:1.1rem}
+.form-group label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.4rem}
+.form-group input{
+  width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:10px;
+  background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus{border-color:var(--gold)}
+.login-err{color:var(--red);font-size:.8rem;text-align:center;margin-bottom:.75rem;display:none}
+#loginScreen.hidden{display:none}
+
+/* ───── SIDEBAR ───── */
+.sidebar{
+  width:var(--sidebar-w);background:var(--bg-mid);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;
+  transition:background .35s,border-color .35s;box-shadow:var(--shadow);
+}
+.sb-header{padding:1.3rem 1.2rem 1rem;border-bottom:1px solid var(--border)}
+.sb-brand{font-family:'DM Serif Display',serif;font-size:1.25rem}
+.sb-brand em{color:var(--gold);font-style:normal}
+.sb-brand sup{font-size:.5rem;font-family:'DM Sans',sans-serif;color:var(--muted);margin-left:4px;letter-spacing:.07em}
+.sb-admin{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.2rem;border-bottom:1px solid var(--border)}
+.admin-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-lt));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#1a1200;flex-shrink:0}
+.admin-info{overflow:hidden}
+.admin-name{font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-role{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.sb-nav{flex:1;overflow-y:auto;padding:.7rem 0}
+.nav-section{font-size:.6rem;text-transform:uppercase;color:var(--muted);padding:0 1.2rem;margin:.8rem 0 .2rem;font-weight:600;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.55rem 1.2rem;cursor:pointer;color:var(--muted);font-size:.84rem;border-left:2px solid transparent;transition:all .2s;user-select:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(168,115,26,.06);border-left-color:var(--gold);color:var(--gold)}
+[data-theme="dark"] .nav-item.active{background:rgba(201,168,76,.06)}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.59rem;padding:.1rem .42rem;border-radius:8px;font-weight:700;display:none}
+.nav-badge.show{display:inline-block}
+.sb-footer{padding:.85rem 1.2rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:.45rem}
+.sb-footer button{width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);padding:.45rem;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;transition:all .2s}
+.sb-footer button:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ───── MAIN ───── */
+.main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;position:relative;z-index:1;min-height:100vh}
+.top-bar{position:sticky;top:0;z-index:10;padding:.75rem 1.75rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg-mid);backdrop-filter:blur(16px);transition:background .35s}
+.top-title{font-family:'DM Serif Display',serif;font-size:1.05rem}
+.top-right{display:flex;align-items:center;gap:.75rem}
+.live-pill{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--green)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#liveClock{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted)}
+.content{padding:1.5rem 1.75rem;flex:1}
+.page{display:none;animation:pgIn .3s ease}
+.page.active{display:block}
+@keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ───── STATS ───── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.15rem;box-shadow:var(--shadow);transition:all .22s;backdrop-filter:blur(12px);cursor:default}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-label{font-size:.67rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:.3rem}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:2.1rem;font-weight:700;color:var(--gold)}
+.stat-sub{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+
+/* ───── CARDS ───── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;overflow:hidden;backdrop-filter:blur(12px);box-shadow:var(--shadow);transition:background .35s,border-color .35s}
+.card-head{padding:.95rem 1.3rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap}
+.card-head-title{font-family:'DM Serif Display',serif;font-size:.95rem;display:flex;align-items:center;gap:.4rem}
+.card-head-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.card-body{padding:1.2rem 1.3rem}
+
+/* ───── TABLES ───── */
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
+.tbl th{text-align:left;font-size:.65rem;text-transform:uppercase;color:var(--muted);padding:.6rem .9rem;border-bottom:1px solid var(--border);font-weight:600;letter-spacing:.06em}
+.tbl td{padding:.75rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+.tbl-empty{padding:2.5rem;text-align:center;color:var(--muted);font-size:.86rem}
+
+/* ───── PILLS / STATUS ───── */
+.pill{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .7rem;border-radius:20px;font-size:.7rem;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.pill-pending{background:rgba(217,119,6,.1);color:var(--amber)}
+.pill-approved{background:rgba(22,163,74,.1);color:var(--green)}
+.pill-rejected{background:rgba(220,38,38,.1);color:var(--red)}
+.pill-suspended{background:rgba(100,116,139,.12);color:var(--muted)}
+.pill-active{background:rgba(22,163,74,.1);color:var(--green)}
+.pill-stopped{background:rgba(220,38,38,.1);color:var(--red)}
+
+/* ───── BUTTONS ───── */
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-lt));color:#1a1200;padding:.58rem 1.15rem;border-radius:10px;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.87rem;transition:all .22s;display:inline-flex;align-items:center;gap:.35rem}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--gold-glow)}
+.btn-sm{padding:.3rem .75rem;border-radius:8px;font-size:.76rem;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .18s;display:inline-flex;align-items:center;gap:.25rem}
+.btn-approve{background:rgba(22,163,74,.12);color:var(--green)}
+.btn-approve:hover{background:var(--green);color:#fff}
+.btn-reject{background:rgba(220,38,38,.1);color:var(--red)}
+.btn-reject:hover{background:var(--red);color:#fff}
+.btn-suspend{background:rgba(100,116,139,.1);color:var(--muted)}
+.btn-suspend:hover{background:var(--muted);color:#fff}
+.btn-start{background:rgba(22,163,74,.12);color:var(--green)}
+.btn-start:hover{background:var(--green);color:#fff}
+.btn-stop{background:rgba(220,38,38,.1);color:var(--red)}
+.btn-stop:hover{background:var(--red);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);padding:.55rem 1.1rem;border-radius:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.87rem;transition:all .22s;display:inline-flex;align-items:center;gap:.35rem}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:rgba(220,38,38,.1);color:var(--red);padding:.55rem 1.1rem;border-radius:10px;font-weight:600;border:1.5px solid rgba(220,38,38,.2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.87rem;transition:all .22s}
+.btn-danger:hover{background:var(--red);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+
+/* ───── SEARCH / FILTER ───── */
+.filter-bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.search-input{padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:9px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;transition:border-color .2s;min-width:200px}
+.search-input:focus{border-color:var(--gold)}
+.filter-select{padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:9px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;cursor:pointer;transition:border-color .2s}
+.filter-select:focus{border-color:var(--gold)}
+
+/* ───── SERVICE TOGGLE ───── */
+.service-row{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.3rem;border-bottom:1px solid var(--border)}
+.service-row:last-child{border-bottom:none}
+.service-info{display:flex;align-items:center;gap:.85rem}
+.service-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-lt));display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:.95rem;color:#1a1200;font-weight:700;flex-shrink:0}
+.service-name{font-size:.88rem;font-weight:600}
+.service-spec{font-size:.73rem;color:var(--muted)}
+.service-controls{display:flex;align-items:center;gap:.55rem}
+
+/* ───── TOGGLE SWITCH ───── */
+.toggle-wrap{display:flex;align-items:center;gap:.55rem}
+.toggle{position:relative;width:42px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.25s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;top:3px;left:3px;background:#fff;border-radius:50%;transition:.25s}
+.toggle input:checked+.toggle-slider{background:var(--green)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+.toggle-label{font-size:.76rem;font-weight:600;color:var(--muted)}
+
+/* ───── MODAL ───── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--bg-mid);border:1px solid var(--border);border-radius:20px;width:520px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.modal-head{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem}
+.modal-close{background:none;border:none;cursor:pointer;font-size:1.3rem;color:var(--muted);line-height:1;padding:.2rem;transition:color .2s}
+.modal-close:hover{color:var(--red)}
+.modal-body{padding:1.3rem 1.4rem;overflow-y:auto;flex:1}
+.modal-foot{padding:.85rem 1.4rem;border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end}
+.detail-row{display:flex;gap:.5rem;margin-bottom:.55rem;font-size:.85rem}
+.detail-label{color:var(--muted);min-width:130px;flex-shrink:0;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:.05rem}
+.detail-val{color:var(--text);font-weight:500}
+
+/* ───── NOTICE AREA ───── */
+.notice-editor{display:flex;gap:.6rem;align-items:flex-start}
+textarea.notice-input{flex:1;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;outline:none;resize:vertical;min-height:70px;transition:border-color .2s}
+textarea.notice-input:focus{border-color:var(--gold)}
+
+/* ───── PATIENT CHART ───── */
+.patient-mini{display:flex;align-items:center;gap:.6rem}
+.patient-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#3d9dd1);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
+
+/* ───── TOAST ───── */
+.toast-area{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem}
+.toast{background:var(--bg-mid);border:1px solid var(--border);border-radius:12px;padding:.75rem 1.1rem;font-size:.82rem;box-shadow:var(--shadow-lg);animation:slideUp .3s ease;display:flex;align-items:center;gap:.5rem;min-width:240px;max-width:340px}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+
+/* ───── RESPONSIVE ───── */
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  :root{--sidebar-w:0px}
+  .sidebar{transform:translateX(-100%)}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ───── SECTION HEADING ───── */
+.sec-heading{font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem}
+.sec-sub{font-size:.8rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;margin-left:.25rem}
+</style> -->
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<!-- ─── LOGIN ─── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <h1>Care Core</h1>
+      <p>Admin Control Panel</p>
+    </div>
+    <div id="loginErr" class="login-err">Invalid credentials. Please try again.</div>
+    <div class="form-group">
+      <label>Username or Email</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" style="width:100%;justify-content:center;margin-top:.3rem" id="loginBtn" onclick="doLogin()">
+      Sign In →
+    </button>
+  </div>
+</div>
+
+<!-- ─── APP SHELL ─── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand" style="display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:1.25rem;"><div style="width:36px;height:36px;background:#2563eb;color:#fff;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;"><i class="bi bi-heart-pulse-fill"></i></div><span>Care<span style="color:#2563eb;">Core</span></span></div>
+  </div>
+  <div class="sb-admin">
+    <div class="admin-avatar" id="avatarInit">A</div>
+    <div class="admin-info">
+      <div class="admin-name" id="adminNameSB">Administrator</div>
+      <div class="admin-role" id="adminRoleSB">superadmin</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-section">Doctors</div>
+    <div class="nav-item" onclick="nav('pending')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Pending Requests
+      <span class="nav-badge" id="pendingBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="nav('doctors')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      All Doctors
+    </div>
+    <div class="nav-item" onclick="nav('services')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Service Control
+    </div>
+    <div class="nav-section">Patients</div>
+    <div class="nav-item" onclick="nav('patients')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Patient Database
+    </div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" onclick="nav(otice')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      Notice Board
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <button onclick="toggleTheme()">☾ Toggle Theme</button>
+    <button onclick="doLogout()">↩ Sign Out</button>
+  </div>
+</aside>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main class="main" id="mainContent">
+  <div class="top-bar">
+    <div class="top-title" id="pageTitle">Dashboard</div>
+    <div class="top-right">
+      <div class="live-pill"><span class="live-dot"></span> Live</div>
+      <div id="liveClock">--:--:--</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="sec-heading">Overview <span class="sec-sub">Today's snapshot</span></div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Doctors</div>
+          <div class="stat-value" id="s-docs">—</div>
+          <div class="stat-sub" id="s-docs-sub">approved on platform</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Approvals</div>
+          <div class="stat-value" id="s-pending" style="color:var(--amber)">—</div>
+          <div class="stat-sub">awaiting review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Patients</div>
+          <div class="stat-value" id="s-patients" style="color:var(--blue)">—</div>
+          <div class="stat-sub">registered</div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head"><span class="card-head-title">⏳ Pending Requests</span><button class="btn-sm btn-approve" onclick="nav('pending')">View All</button></div>
+          <div class="card-body" id="dash-pending-list"><div class="tbl-empty">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PENDING REQUESTS ── -->
+    <div class="page" id="page-pending">
+      <div class="sec-heading">Pending Requests <span class="sec-sub">Doctor registration approvals</span></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-title">🕐 Awaiting Review</span>
+          <button class="btn-outline" onclick="loadDoctors('pending')" style="font-size:.78rem;padding:.35rem .8rem">↻ Refresh</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Doctor</th><th>Specialization</th><th>Qualification</th><th>Reg. No.</th><th>Experience</th><th>Applied</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTbody"><tr><td colspan="7" class="tbl-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ALL DOCTORS ── -->
+    <div class="page" id="page-doctors">
+      <div class="sec-heading">All Doctors <span class="sec-sub">Full registry</span></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-title">👨‍⚕️ Doctor Registry</span>
+          <div class="card-head-actions">
+            <input class="search-input" type="text" placeholder="Search name / email…" id="docSearch" oninput="filterDoctors()">
+            <select class="filter-select" id="docStatusFilter" onchange="filterDoctors()">
+              <option value="">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Doctor</th><th>Specialization</th><th>Fee</th><th>Status</th><th>Service</th><th>Joined</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="doctorsTbody"><tr><td colspan="7" class="tbl-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SERVICE CONTROL ── -->
+    <div class="page" id="page-services">
+      <div class="sec-heading">Service Control <span class="sec-sub">Start / stop individual doctor services</span></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-title">⚡ Active Doctor Services</span>
+          <div class="card-head-actions">
+            <button class="btn-sm btn-start" onclick="bulkService(true)">▶ Start All</button>
+            <button class="btn-sm btn-stop" onclick="bulkService(false)">■ Stop All</button>
+            <button class="btn-outline" onclick="loadServices()" style="font-size:.78rem;padding:.35rem .8rem">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="servicesBody"><div class="tbl-empty" style="padding:2rem">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- ── PATIENTS ── -->
+    <div class="page" id="page-patients">
+      <div class="sec-heading">Patient Database <span class="sec-sub">All registered patients</span></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-title">🏥 Patient Records</span>
+          <div class="card-head-actions">
+            <input class="search-input" type="text" placeholder="Search name / contact…" id="ptSearch" oninput="filterPatients()">
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Patient</th><th>Age</th><th>Gender</th><th>Contact</th><th>Blood Group</th><th>Visits</th><th>Registered</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTbody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── NOTICE BOARD ── -->
+    <div class="page" id="page-notice">
+      <div class="sec-heading">Notice Board <span class="sec-sub">Global clinic announcement</span></div>
+      <div class="card">
+        <div class="card-head"><span class="card-head-title">📢 Global Notice</span></div>
+        <div class="card-body">
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem">
+            This notice is broadcast <strong>globally</strong> — it appears on <em>every</em> doctor’s notice board and on the patient portal. Individual doctors may also post their own separate notices.
+          </p>
+          <div style="background:rgba(168,115,26,.06);border:1px solid rgba(168,115,26,.22);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;font-size:.87rem;color:var(--gold)" id="currentNotice">Loading…</div>
+          <div class="notice-editor">
+            <textarea class="notice-input" id="noticeText" placeholder="Enter clinic-wide notice visible to all doctors and patients…"></textarea>
+            <button class="btn-primary" onclick="updateNotice()">📡 Broadcast to All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ─── DOCTOR DETAIL MODAL ─── -->
+<div class="modal-overlay" id="doctorModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalDrName">Doctor Details</div>
+      <button class="modal-close" onclick="closeModal('doctorModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalDrBody"></div>
+    <div class="modal-foot" id="modalDrFoot"></div>
+  </div>
+</div>
+
+<!-- ─── PATIENT DETAIL MODAL ─── -->
+<div class="modal-overlay" id="patientModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalPtName">Patient Details</div>
+      <button class="modal-close" onclick="closeModal('patientModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalPtBody"></div>
+    <div class="modal-foot">
+      <button class="btn-outline" onclick="closeModal('patientModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── REJECT REASON MODAL ─── -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Reject Doctor</div>
+      <button class="modal-close" onclick="closeModal('rejectModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.8rem">Please provide a reason for rejection. This may be communicated to the applicant.</p>
+      <div class="form-group">
+        <label>Reason</label>
+        <textarea class="notice-input" id="rejectReason" placeholder="e.g. Registration number could not be verified…" style="min-height:90px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-outline" onclick="closeModal('rejectModal')">Cancel</button>
+      <button class="btn-danger" onclick="confirmReject()">Reject Doctor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST AREA ─── -->
+<div class="toast-area" id="toastArea"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let TOKEN = localStorage.getItem('adminToken') || '';
+let ADMIN_INFO = JSON.parse(localStorage.getItem('adminInfo') || '{}');
+let allDoctors = [];
+let allPatients = [];
+let rejectTargetId = null;
+const API = '';  // same origin
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  tickClock();
+  setInterval(tickClock, 1000);
+  if (TOKEN) {
+    showApp();
+  }
+  document.getElementById('loginPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+function tickClock() {
+  const n = new Date();
+  document.getElementById('liveClock').textContent =
+    [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const r = await fetch(`${API}/api/auth/admin/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login failed');
+    TOKEN = d.token;
+    ADMIN_INFO = d.admin;
+    localStorage.setItem('adminToken', TOKEN);
+    localStorage.setItem('adminInfo', JSON.stringify(ADMIN_INFO));
+    showApp();
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  const nm = ADMIN_INFO.full_name || 'Admin';
+  document.getElementById('adminNameSB').textContent = nm;
+  document.getElementById('adminRoleSB').textContent = ADMIN_INFO.role || 'admin';
+  document.getElementById('avatarInit').textContent = nm.charAt(0).toUpperCase();
+  loadDashboard();
+  loadDoctors();
+  loadPatients();
+  loadNotice();
+}
+
+function doLogout() {
+  TOKEN = ''; ADMIN_INFO = {};
+  localStorage.removeItem('adminToken'); localStorage.removeItem('adminInfo');
+  location.reload();
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard:'Dashboard', pending:'Pending Requests', doctors:'All Doctors',
+  services:'Service Control', patients:'Patient Database', notice:otice Board'
+};
+
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i => {
+    if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${id}'`)) i.classList.add('active');
+  });
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[id] || id;
+  if (id === 'pending') loadDoctors('pending');
+  if (id === 'doctors') loadDoctors();
+  if (id === 'services') loadServices();
+  if (id === 'patients') loadPatients();
+}
+
+// ─── API HELPERS ──────────────────────────────────────────────────────────────
+async function api(path, opts={}) {
+  const r = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN, ...(opts.headers||{}) }
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Request failed');
+  return d;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = {success:'✓', error:'✕', info:'ℹ'};
+  el.innerHTML = `<span>${icons[type]||'ℹ'}</span> ${msg}`;
+  document.getElementById('toastArea').appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [docs, patients, metrics] = await Promise.all([
+      api('/api/admin/doctors'),
+      api('/api/admin/patients'),
+      api('/api/metrics')
+    ]);
+    const approved = docs.filter(d=>d.approval_status==='approved').length;
+    const pending  = docs.filter(d=>d.approval_status==='pending').length;
+    document.getElementById('s-docs').textContent = approved;
+    document.getElementById('s-docs-sub').textContent = `${docs.length} total registered`;
+    document.getElementById('s-pending').textContent = pending;
+    document.getElementById('s-patients').textContent = patients.length;
+    // pending badge
+    const badge = document.getElementById('pendingBadge');
+    if (pending > 0) { badge.textContent = pending; badge.classList.add('show'); }
+    else badge.classList.remove('show');
+    // dash pending list
+    const pend = docs.filter(d=>d.approval_status==='pending').slice(0,5);
+    const pl = document.getElementById('dash-pending-list');
+    if (!pend.length) { pl.innerHTML = '<div class="tbl-empty">No pending requests</div>'; return; }
+    pl.innerHTML = pend.map(d=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:.86rem;font-weight:600">${esc(d.full_name)}</div>
+          <div style="font-size:.73rem;color:var(--muted)">${esc(d.specialization)} · ${esc(d.qualification)}</div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn-sm btn-approve" onclick="approveDoctor(${d.id})">✓ Approve</button>
+          <button class="btn-sm btn-reject" onclick="openReject(${d.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { toast('Failed to load dashboard: '+e.message,'error'); }
+}
+
+// ─── DOCTORS ──────────────────────────────────────────────────────────────────
+async function loadDoctors(statusFilter) {
+  try {
+    const url = statusFilter ? `/api/admin/doctors?status=${statusFilter}` : '/api/admin/doctors';
+    allDoctors = await api(url);
+    if (statusFilter === 'pending') renderPending();
+    else renderDoctors();
+  } catch(e) { toast('Failed to load doctors: '+e.message,'error'); }
+}
+
+function renderPending() {
+  const tb = document.getElementById('pendingTbody');
+  const rows = allDoctors.filter(d=>d.approval_status==='pending');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="7" class="tbl-empty">No pending requests 🎉</td></tr>'; return; }
+  tb.innerHTML = rows.map(d=>`
+    <tr>
+      <td>
+        <div style="font-weight:600;font-size:.86rem">${esc(d.full_name)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">${esc(d.email)}</div>
+      </td>
+      <td>${esc(d.specialization)}</td>
+      <td>${esc(d.qualification)}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${esc(d.registration_number)}</span></td>
+      <td>${d.years_experience||0} yrs</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fmtDate(d.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn-sm btn-approve" onclick="approveDoctor(${d.id})">✓ Approve</button>
+          <button class="btn-sm btn-reject" onclick="openReject(${d.id})">✕ Reject</button>
+          <button class="btn-sm btn-suspend" onclick="openDoctorDetail(${d.id})">👁 View</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderDoctors() {
+  const q = (document.getElementById('docSearch')?.value||'').toLowerCase();
+  const st = document.getElementById('docStatusFilter')?.value||'';
+  let rows = allDoctors;
+  if (q) rows = rows.filter(d=>(d.full_name||'').toLowerCase().includes(q)||(d.email||'').toLowerCase().includes(q));
+  if (st) rows = rows.filter(d=>d.approval_status===st);
+  const tb = document.getElementById('doctorsTbody');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="7" class="tbl-empty">No doctors found</td></tr>'; return; }
+  tb.innerHTML = rows.map(d=>{
+    const st_pill = `<span class="pill pill-${d.approval_status}">${d.approval_status}</span>`;
+    const svc_pill = d.is_active
+      ? `<span class="pill pill-active">Active</span>`
+      : `<span class="pill pill-stopped">Stopped</span>`;
+    return `<tr>
+      <td>
+        <div style="font-weight:600;font-size:.86rem">${esc(d.full_name)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">${esc(d.email)}</div>
+      </td>
+      <td>${esc(d.specialization)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem">₹${d.consultation_fee||0}</td>
+      <td>${st_pill}</td>
+      <td>${svc_pill}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fmtDate(d.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+          <button class="btn-sm btn-suspend" onclick="openDoctorDetail(${d.id})">👁 Detail</button>
+          ${d.approval_status==='pending'?`<button class="btn-sm btn-approve" onclick="approveDoctor(${d.id})">✓</button><button class="btn-sm btn-reject" onclick="openReject(${d.id})">✕</button>`:''}
+          ${d.approval_status==='approved'?`<button class="btn-sm btn-reject" onclick="suspendDoctor(${d.id})">⏸ Suspend</button>`:''}
+          ${d.approval_status==='suspended'||d.approval_status==='rejected'?`<button class="btn-sm btn-approve" onclick="approveDoctor(${d.id})">✓ Reinstate</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterDoctors() { renderDoctors(); }
+
+function openDoctorDetail(id) {
+  const d = allDoctors.find(x=>x.id===id);
+  if (!d) return;
+  document.getElementById('modalDrName').textContent = d.full_name;
+  document.getElementById('modalDrBody').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${esc(d.email)}</span></div>
+    <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-val">${esc(d.phone||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Specialization</span><span class="detail-val">${esc(d.specialization)}</span></div>
+    <div class="detail-row"><span class="detail-label">Qualification</span><span class="detail-val">${esc(d.qualification)}</span></div>
+    <div class="detail-row"><span class="detail-label">Reg. Number</span><span class="detail-val" style="font-family:'JetBrains Mono',monospace">${esc(d.registration_number)}</span></div>
+    <div class="detail-row"><span class="detail-label">Experience</span><span class="detail-val">${d.years_experience||0} years</span></div>
+    <div class="detail-row"><span class="detail-label">Consultation Fee</span><span class="detail-val">₹${d.consultation_fee||0}</span></div>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val"><span class="pill pill-${d.approval_status}">${d.approval_status}</span></span></div>
+    <div class="detail-row"><span class="detail-label">Service Active</span><span class="detail-val">${d.is_active?'<span class="pill pill-active">Yes</span>':'<span class="pill pill-stopped">No</span>'}</span></div>
+    <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-val">${fmtDate(d.created_at)}</span></div>
+    ${d.profile_bio?`<div class="detail-row"><span class="detail-label">Bio</span><span class="detail-val" style="white-space:pre-wrap">${esc(d.profile_bio)}</span></div>`:''}
+    ${d.rejection_reason?`<div class="detail-row"><span class="detail-label">Reject Reason</span><span class="detail-val" style="color:var(--red)">${esc(d.rejection_reason)}</span></div>`:''}
+    ${d.approved_by_name?`<div class="detail-row"><span class="detail-label">Approved By</span><span class="detail-val">${esc(d.approved_by_name)}</span></div>`:''}
+    ${d.last_login?`<div class="detail-row"><span class="detail-label">Last Login</span><span class="detail-val">${fmtDate(d.last_login)}</span></div>`:''}
+  `;
+  const foot = document.getElementById('modalDrFoot');
+  foot.innerHTML = '';
+  const close = btn('Close','btn-outline',`closeModal('doctorModal')`);
+  foot.appendChild(close);
+  if (d.approval_status==='pending') {
+    foot.appendChild(btn('✓ Approve','btn-approve btn-sm',`approveDoctor(${d.id});closeModal('doctorModal')`));
+    foot.appendChild(btn('✕ Reject','btn-reject btn-sm',`closeModal('doctorModal');openReject(${d.id})`));
+  }
+  if (d.approval_status==='approved') {
+    foot.appendChild(btn('⏸ Suspend','btn-suspend btn-sm',`suspendDoctor(${d.id});closeModal('doctorModal')`));
+  }
+  if (d.approval_status==='suspended'||d.approval_status==='rejected') {
+    foot.appendChild(btn('✓ Reinstate','btn-approve btn-sm',`approveDoctor(${d.id});closeModal('doctorModal')`));
+  }
+  document.getElementById('doctorModal').classList.add('open');
+}
+
+function btn(label, cls, onclick) {
+  const b = document.createElement('button');
+  b.className = (cls.includes('btn-outline')?'btn-outline':'btn-sm')+' '+cls;
+  b.textContent = label;
+  b.setAttribute('onclick', onclick);
+  return b;
+}
+
+async function approveDoctor(id) {
+  try {
+    await api(`/api/admin/doctors/${id}/approve`,{method:'POST'});
+    toast('Doctor approved successfully','success');
+    await loadDoctors(); loadDashboard();
+    renderPending();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+function openReject(id) {
+  rejectTargetId = id;
+  document.getElementById('rejectReason').value = '';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+async function confirmReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  try {
+    await api(`/api/admin/doctors/${rejectTargetId}/reject`,{method:'POST',body:JSON.stringify({reason})});
+    toast('Doctor rejected','info');
+    closeModal('rejectModal');
+    await loadDoctors(); loadDashboard();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+async function suspendDoctor(id) {
+  if (!confirm('Suspend this doctor? They will be unable to log in.')) return;
+  try {
+    await api(`/api/admin/doctors/${id}/suspend`,{method:'POST'});
+    toast('Doctor suspended','info');
+    await loadDoctors(); loadDashboard();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+// ─── SERVICES ─────────────────────────────────────────────────────────────────
+async function loadServices() {
+  try {
+    const docs = await api('/api/admin/doctors');
+    allDoctors = docs;
+    const approved = docs.filter(d=>d.approval_status==='approved');
+    const body = document.getElementById('servicesBody');
+    if (!approved.length) {
+      body.innerHTML = '<div class="tbl-empty">No approved doctors</div>'; return;
+    }
+    body.innerHTML = approved.map(d=>`
+      <div class="service-row">
+        <div class="service-info">
+          <div class="service-avatar">${d.full_name.charAt(0)}</div>
+          <div>
+            <div class="service-name">${esc(d.full_name)}</div>
+            <div class="service-spec">${esc(d.specialization)} · ₹${d.consultation_fee||0}/consult</div>
+          </div>
+        </div>
+        <div class="service-controls">
+          <div class="toggle-wrap">
+            <label class="toggle">
+              <input type="checkbox" id="svc-${d.id}" ${d.is_active?'checked':''} onchange="toggleService(${d.id},this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="svc-lbl-${d.id}">${d.is_active?'Running':'Stopped'}</span>
+          </div>
+          <button class="btn-sm ${d.is_active?'btn-stop':'btn-start'}" id="svc-btn-${d.id}" onclick="toggleService(${d.id},${!d.is_active})">
+            ${d.is_active?'■ Stop':'▶ Start'}
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { toast('Failed to load services: '+e.message,'error'); }
+}
+
+async function toggleService(id, enable) {
+  const endpoint = enable ? 'approve' : 'suspend';
+  // We use is_active as proxy. Approved = active, suspended = stopped but can reinstate
+  // Actually toggle just the is_active field via the suspend/approve endpoints
+  // For a cleaner UX we call the appropriate endpoint
+  try {
+    if (enable) {
+      await api(`/api/admin/doctors/${id}/approve`,{method:'POST'});
+    } else {
+      await api(`/api/admin/doctors/${id}/suspend`,{method:'POST'});
+    }
+    const lbl = document.getElementById(`svc-lbl-${id}`);
+    const btn2 = document.getElementById(`svc-btn-${id}`);
+    const chk = document.getElementById(`svc-${id}`);
+    if (lbl) lbl.textContent = enable ? 'Running' : 'Stopped';
+    if (chk) chk.checked = enable;
+    if (btn2) {
+      btn2.className = `btn-sm ${enable?'btn-stop':'btn-start'}`;
+      btn2.textContent = enable ? '■ Stop' : '▶ Start';
+      btn2.setAttribute('onclick',`toggleService(${id},${!enable})`);
+    }
+    toast(`Service ${enable?'started':'stopped'} for doctor`, enable?'success':'info');
+    await loadDoctors(); loadDashboard();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+async function bulkService(enable) {
+  const approved = allDoctors.filter(d=>d.approval_status==='approved'||d.approval_status==='suspended');
+  if (!approved.length) { toast(o doctors to update','info'); return; }
+  if (!confirm(`${enable?'Start':'Stop'} service for ALL doctors?`)) return;
+  for (const d of approved) {
+    try { await toggleService(d.id, enable); } catch {}
+  }
+  toast(`All services ${enable?'started':'stopped'}`,'success');
+  loadServices();
+}
+
+// ─── PATIENTS ─────────────────────────────────────────────────────────────────
+async function loadPatients() {
+  try {
+    allPatients = await api('/api/admin/patients');
+    renderPatients();
+  } catch(e) { toast('Failed to load patients: '+e.message,'error'); }
+}
+
+function renderPatients() {
+  const q = (document.getElementById('ptSearch')?.value||'').toLowerCase();
+  let rows = allPatients;
+  if (q) rows = rows.filter(p=>(p.full_name||'').toLowerCase().includes(q)||(p.contact||'').includes(q));
+  const tb = document.getElementById('patientsTbody');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="8" class="tbl-empty">No patients found</td></tr>'; return; }
+  tb.innerHTML = rows.map(p=>`
+    <tr>
+      <td>
+        <div class="patient-mini">
+          <div class="patient-dot">${(p.full_name||'?').charAt(0)}</div>
+          <div>
+            <div style="font-size:.86rem;font-weight:600">${esc(p.full_name)}</div>
+            <div style="font-size:.71rem;color:var(--muted)">${esc(p.email||'—')}</div>
+          </div>
+        </div>
+      </td>
+      <td>${p.age||'—'}</td>
+      <td style="text-transform:capitalize">${esc(p.gender||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.79rem">${esc(p.contact||'—')}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--red)">${esc(p.blood_group||'—')}</span></td>
+      <td><span style="font-family:'JetBrains Mono',monospace">${p.total_visits||0}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${fmtDate(p.created_at)}</td>
+      <td><button class="btn-sm btn-suspend" onclick="openPatientDetail(${p.id})">👁 View</button></td>
+    </tr>
+  `).join('');
+}
+
+function filterPatients() { renderPatients(); }
+
+function openPatientDetail(id) {
+  const p = allPatients.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('modalPtName').textContent = p.full_name;
+  document.getElementById('modalPtBody').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-val">${esc(p.full_name)}</span></div>
+    <div class="detail-row"><span class="detail-label">Age</span><span class="detail-val">${p.age||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Gender</span><span class="detail-val" style="text-transform:capitalize">${esc(p.gender||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-val" style="font-family:'JetBrains Mono',monospace">${esc(p.contact||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${esc(p.email||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Blood Group</span><span class="detail-val" style="color:var(--red);font-weight:700">${esc(p.blood_group||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Total Visits</span><span class="detail-val">${p.total_visits||0}</span></div>
+    <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-val">${fmtDate(p.created_at)}</span></div>
+  `;
+  document.getElementById('patientModal').classList.add('open');
+}
+
+// ─── NOTICE ───────────────────────────────────────────────────────────────────
+async function loadNotice() {
+  try {
+    const d = await api('/api/notice/get');
+    document.getElementById('currentNotice').textContent = d.data?.text || '(No active notice)';
+    document.getElementById(oticeText').value = d.data?.text || '';
+  } catch {}
+}
+
+async function updateNotice() {
+  const text = document.getElementById(oticeText').value.trim();
+  if (!text) { toast('Please enter notice text','error'); return; }
+  try {
+    await api('/api/notice/set',{method:'POST',body:JSON.stringify({text})});
+    document.getElementById('currentNotice').textContent = text;
+    toast(otice updated','success');
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return isNaN(d) ? str : d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:umeric'});
+}
+function toggleTheme() {
+  const h = document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+
+// ─── AUTO REFRESH ─────────────────────────────────────────────────────────────
+setInterval(() => {
+  if (TOKEN) {
+    loadDashboard();
+    const active = document.querySelector('.page.active');
+    if (active?.id==='page-pending') loadDoctors('pending');
+  }
+}, 30000);
+</script>
+  <script src="ai-widget.js"></script>`n  <script src="telehealth-call.js"></script>`n  <script src="global-nav.js"></script>`n</body>
+</html>
+
+
+
+
+

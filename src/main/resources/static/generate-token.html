@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Clinic — Mobile Token Kiosk</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      --radius: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .kiosk-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 440px;
+      width: 100%;
+      padding: 2.25rem 2rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .brand-logo-img {
+      height: 42px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border: 1px solid #bfdbfe;
+    }
+
+    .kiosk-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35rem;
+    }
+
+    .kiosk-desc {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 1.1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #0f172a;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+
+    .btn-generate {
+      width: 100%;
+      padding: 0.95rem;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 1.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-generate:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    /* Generated Pass Card (Light Clean Theme) */
+    .token-pass {
+      display: none;
+      background: #f8fafc;
+      border: 2px dashed #bfdbfe;
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: 1.25rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .token-large {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -1px;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0.4rem 0;
+    }
+
+    .pass-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.88rem;
+    }
+
+    .pass-row:last-child {
+      border-bottom: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="kiosk-card">
+    <img src="resources/logo.png" alt="CARE CORE CLINIC" class="brand-logo-img" onerror="this.src='logo.png'">
+
+    <div class="brand-badge">
+      <i class="bi bi-qr-code-scan"></i> Mobile Self-Service Kiosk
+    </div>
+
+    <!-- Token Generation Form -->
+    <div id="tokenFormBox">
+      <h2 class="kiosk-title">Instant Token Generator</h2>
+      <p class="kiosk-desc">Register your arrival and join the clinic queue immediately.</p>
+
+      <div class="form-group">
+        <label class="form-label">Patient Full Name *</label>
+        <input type="text" class="form-input" id="patientNameInput" placeholder="e.g. Rahul Verma" value="Rahul Verma">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number *</label>
+        <input type="text" class="form-input" id="patientPhoneInput" placeholder="+91 98765 43210" value="+91 98234 56789">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Select Department *</label>
+        <select class="form-input" id="deptSelect">
+          <option value="Cardiology">General Cardiology (Dr. Sakshi Patel)</option>
+          <option value="Dermatology">Dermatology Clinic (Dr. Rajani Shah)</option>
+          <option value="General Medicine">General Medicine (Dr. Keshav Kumar)</option>
+          <option value="Pathology">Pathology & Diagnostics (Lab Desk)</option>
+        </select>
+      </div>
+
+      <button class="btn-generate" onclick="generateClinicToken()">
+        <span>⚡</span>
+        <span>Generate Token & Join Queue</span>
+      </button>
+    </div>
+
+    <!-- Digital Token Pass (Appears after generating) -->
+    <div class="token-pass" id="tokenPassBox">
+      <div style="font-size:0.78rem; color:#10b981; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
+        <i class="bi bi-check-circle-fill"></i> Queue Registration Confirmed
+      </div>
+      
+      <div class="token-large" id="passTokenNum">#027</div>
+
+      <div class="pass-row">
+        <span style="color:var(--muted);">Patient Name:</span>
+        <strong id="passPatientName">Rahul Verma</strong>
+      </div>
+      <div class="pass-row">
+        <span style="color:var(--muted);">Assigned Doctor:</span>
+        <strong id="passDoctorName">Dr. Sakshi Patel</strong>
+      </div>
+      <div class="pass-row">
+        <span style="color:var(--muted);">Queue Status:</span>
+        <strong style="color:#f59e0b;">Waiting (~15 mins)</strong>
+      </div>
+      <div class="pass-row">
+        <span style="color:var(--muted);">Clinic Counter:</span>
+        <strong>Room 102</strong>
+      </div>
+
+      <div id="passQrCode" style="margin:1.25rem auto 0.5rem auto; display:flex; justify-content:center; background:#ffffff; padding:10px; border-radius:12px; border:1px solid #e2e8f0; width:fit-content;"></div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem;">Present this QR code when called to the counter</div>
+
+      <div style="margin-top:1.5rem;">
+        <a href="display.html" style="color:var(--primary); font-size:0.88rem; text-decoration:none; font-weight:600;">📺 View Live Display Board →</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Detect host / LAN IP for mobile scan compatibility
+    const hostIp = window.location.hostname === 'localhost' ? '192.168.1.4' : window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const baseUrl = `http://${hostIp}${port}`;
+
+    function generateClinicToken() {
+      const name = document.getElementById('patientNameInput').value.trim() || 'Walk-In Patient';
+      const phone = document.getElementById('patientPhoneInput').value.trim();
+      const dept = document.getElementById('deptSelect').value;
+
+      // Increment token
+      let tokenCounter = parseInt(localStorage.getItem('carecore_token_counter') || '26') + 1;
+      localStorage.setItem('carecore_token_counter', tokenCounter);
+      const tokenStr = '#' + String(tokenCounter).padStart(3, '0');
+
+      let doctorName = 'Dr. Sakshi Patel';
+      if (dept === 'Dermatology') doctorName = 'Dr. Rajani Shah';
+      if (dept === 'General Medicine') doctorName = 'Dr. Keshav Kumar';
+      if (dept === 'Pathology') doctorName = 'Pathology Desk';
+
+      // Save into active clinic tokens list
+      let tokens = JSON.parse(localStorage.getItem('carecore_active_tokens') || '[]');
+      const newToken = {
+        token: tokenStr,
+        name: name,
+        doctor: doctorName,
+        dept: dept,
+        status: 'Waiting',
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      };
+      tokens.push(newToken);
+      localStorage.setItem('carecore_active_tokens', JSON.stringify(tokens));
+
+      // Update Pass UI
+      document.getElementById('tokenFormBox').style.display = 'none';
+      document.getElementById('passTokenNum').textContent = tokenStr;
+      document.getElementById('passPatientName').textContent = name;
+      document.getElementById('passDoctorName').textContent = doctorName;
+      document.getElementById('tokenPassBox').style.display = 'block';
+
+      // Generate Pass QR Code with Mobile Wi-Fi URL
+      const qrEl = document.getElementById('passQrCode');
+      qrEl.innerHTML = '';
+      new QRCode(qrEl, {
+        text: `${baseUrl}/queue-checkin.html?token=${tokenCounter}`,
+        width: 120,
+        height: 120,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff"
+      });
+    }
+  </script>
+  <script src="global-nav.js"></script>
+  <script src="ai-widget.js"></script>
+</body>
+</html>

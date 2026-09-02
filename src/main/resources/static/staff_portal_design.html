@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Core Staff Portal - Role-Based Operations</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --background: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      height: 100vh;
+      background-color: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      background-color: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-menu {
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover, .menu-item.active {
+      color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.06);
+    }
+
+    .menu-item.active {
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 240px;
+      width: calc(100% - 240px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Nav */
+    .topnav {
+      height: 64px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+    }
+
+    .topnav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .role-select {
+      height: 36px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 600;
+      background-color: var(--background);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .doctor-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* Containers */
+    .dashboard-container {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header-section h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .header-section p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-card-info h5 {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-card-info p {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .stat-card-icon {
+      font-size: 20px;
+      color: var(--primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background-color: rgba(37, 99, 235, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Workspace Columns */
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgba(37, 99, 235, 0.01);
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    /* Custom Tables */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .custom-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    .custom-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .badge-success { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .badge-warning { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+    /* Action Buttons */
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background-color: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-action:hover {
+      background-color: rgba(37, 99, 235, 0.06);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-action-primary {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .btn-action-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .quick-actions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-quick-action {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      text-align: left;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: var(--transition);
+    }
+
+    .btn-quick-action:hover {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.02);
+      color: var(--primary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Chart box size */
+    .chart-box {
+      height: 200px;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="bi bi-heart-pulse-fill"></i>
+      </div>
+      <span class="sidebar-title">Care Core Operations</span>
+    </div>
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item active" onclick="switchSidebarView('receptionist', this)">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+      </a>
+      <a href="#" class="menu-item" onclick="switchSidebarView('queue', this)">
+        <i class="bi bi-clock-history"></i> Queue System
+      </a>
+      <a href="#" class="menu-item" onclick="switchSidebarView('logbook', this)">
+        <i class="bi bi-folder2-open"></i> Log Book
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Top Nav with Dynamic Role Selector -->
+    <header class="topnav">
+      <div class="topnav-left">
+        <label style="font-size: 12px; font-weight:600; color:var(--text-muted); margin-right: 8px;">Active View:</label>
+        <select class="role-select" id="role-switcher" onchange="changeRoleView()">
+          <option value="receptionist">Receptionist View</option>
+          <option value="pharmacist">Pharmacist View</option>
+          <option value="labtech">Lab Technician View</option>
+        </select>
+      </div>
+      <div class="topnav-right">
+        <div class="doctor-badge">
+          <div class="avatar" id="staff-av">RC</div>
+          <span id="staff-name">Reception Desk</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-container">
+      
+      <!-- RECEPTIONIST VIEW SECTION -->
+      <div id="view-receptionist" class="role-view">
+        <div class="header-section" style="margin-bottom: 20px;">
+          <h1>Receptionist Operations Dashboard</h1>
+          <p>Manage patient flow, book consults, and process manual token check-ins.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Today's Appointments</h5>
+              <p>24 Patients</p>
+            </div>
+            <div class="stat-card-icon"><i class="bi bi-calendar-check"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Walk-in Tokens</h5>
+              <p>8 Tokens</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--warning);"><i class="bi bi-person-fill-add"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Unpaid Bills</h5>
+              <div class="stat-value">3 Bills</div>
+            </div>
+            <div class="stat-card-icon" style="color:var(--danger);"><i class="bi bi-wallet2"></i></div>
+          </div>
+        </div>
+
+        <div class="workspace-layout">
+          <div class="panel-card">
+            <div class="panel-header">Today's Appointment Log</div>
+            <div class="panel-body" style="padding:0;">
+              <table class="custom-table" id="appointmentLogTable">
+                <thead>
+                  <tr>
+                    <th>Patient Name</th>
+                    <th>Selected Doctor</th>
+                    <th>Time Slot</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="appt-row-1">
+                    <td style="font-weight:600;">Sakshi Sardhara</td>
+                    <td>Dr. Patel (Cardiology)</td>
+                    <td>10:00 AM</td>
+                    <td><span class="badge badge-success" id="status-row-1">Checked In (#024)</span></td>
+                    <td><button class="btn-action btn-action-primary" onclick="verifyPatient('Sakshi Sardhara', 'Dr. Patel (Cardiology)', '#024', '10:00 AM')"><i class="bi bi-shield-check"></i> Verify</button></td>
+                  </tr>
+                  <tr id="appt-row-2">
+                    <td style="font-weight:600;">Jia Patel</td>
+                    <td>Dr. Bosamia (General)</td>
+                    <td>11:30 AM</td>
+                    <td><span class="badge badge-warning" id="status-row-2">Pending</span></td>
+                    <td><button class="btn-action" style="background:#2563eb; color:white;" onclick="checkInPatient(this, 'Jia Patel', 'Dr. Bosamia (General)', '11:30 AM', 'row-2')"><i class="bi bi-check-circle"></i> Check-In</button></td>
+                  </tr>
+                  <tr id="appt-row-3">
+                    <td style="font-weight:600;">Dharmik Bosamia</td>
+                    <td>Dr. Amit Sharma (ENT)</td>
+                    <td>01:00 PM</td>
+                    <td><span class="badge badge-warning" id="status-row-3">Pending</span></td>
+                    <td><button class="btn-action" style="background:#2563eb; color:white;" onclick="checkInPatient(this, 'Dharmik Bosamia', 'Dr. Amit Sharma (ENT)', '01:00 PM', 'row-3')"><i class="bi bi-check-circle"></i> Check-In</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">Quick Front-Desk Actions</div>
+            <div class="panel-body">
+              <div class="quick-actions-list">
+                <button class="btn-quick-action" onclick="window.location.href='register.html'"><i class="bi bi-person-plus-fill" style="color:var(--primary);"></i> Register New Patient</button>
+                <button class="btn-quick-action" onclick="window.location.href='generate-token.html'"><i class="bi bi-ticket-perforated-fill" style="color:var(--primary);"></i> Generate Kiosk Token Pass</button>
+                <button class="btn-quick-action" onclick="printVisitReceipt('Sakshi Sardhara', '#024', '₹500')"><i class="bi bi-printer-fill" style="color:var(--primary);"></i> Print Billing Receipt</button>
+                <button class="btn-quick-action" onclick="alert('📅 Opening Appointment Booking Calendar for upcoming doctor slots...')"><i class="bi bi-calendar-plus-fill" style="color:var(--primary);"></i> Schedule Appointment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHARMACIST VIEW SECTION -->
+      <div id="view-pharmacist" class="role-view hidden">
+        <div class="header-section" style="margin-bottom: 20px;">
+          <h1>Pharmacist Inventory Dashboard</h1>
+          <p>Fulfill patient digital prescriptions and track medical stocks.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Pending Prescriptions</h5>
+              <p>12 Orders</p>
+            </div>
+            <div class="stat-card-icon"><i class="bi bi-clipboard2-pulse"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Medicines Dispensed</h5>
+              <p>45 Boxes</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--success);"><i class="bi bi-capsule"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Low Stock Alerts</h5>
+              <p>4 Medicines</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--danger);"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          </div>
+        </div>
+
+        <div class="workspace-layout">
+          <div class="panel-card">
+            <div class="panel-header">Medicine Inventory Status</div>
+            <div class="panel-body" style="padding:0;">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Medicine</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Amlodipine 5mg</td>
+                    <td>Cardiology</td>
+                    <td>140 units</td>
+                    <td><span class="badge badge-success">In Stock</span></td>
+                    <td><button class="btn-action btn-action-primary" onclick="alert('Dispensed Amlodipine 5mg')">Dispense</button></td>
+                  </tr>
+                  <tr>
+                    <td>Amoxicillin 500mg</td>
+                    <td>Antibiotics</td>
+                    <td>18 units</td>
+                    <td><span class="badge badge-danger">Low Stock</span></td>
+                    <td><button class="btn-action btn-action-primary" onclick="alert('Dispensed Amoxicillin 500mg')">Dispense</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">Stock Distribution Chart</div>
+            <div class="panel-body">
+              <div class="chart-box">
+                <canvas id="stockDistributionChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAB TECHNICIAN VIEW SECTION -->
+      <div id="view-labtech" class="role-view hidden">
+        <div class="header-section" style="margin-bottom: 20px;">
+          <h1>Laboratory Information Dashboard</h1>
+          <p>Review diagnosis orders and upload complete patient lab reports.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Pending Test Orders</h5>
+              <p>6 Tests</p>
+            </div>
+            <div class="stat-card-icon"><i class="bi bi-eyedropper"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Urgent Priority</h5>
+              <p>2 Orders</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--danger);"><i class="bi bi-clock-fill"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Reports Uploaded</h5>
+              <p>14 PDFs</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--success);"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">Diagnostic Diagnostic Orders</div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Requesting Doctor</th>
+                  <th>Required Test</th>
+                  <th>Priority</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Sakshi Sardhara</td>
+                  <td>Dr. Patel</td>
+                  <td>Lipid Profile Panel</td>
+                  <td><span class="badge badge-danger">High</span></td>
+                  <td>
+                    <button class="btn-action" onclick="alert('Uploading Lab PDF...')"><i class="bi bi-upload"></i> Upload</button>
+                    <button class="btn-action"><i class="bi bi-eye-fill"></i> Preview</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Dharmik Bosamia</td>
+                  <td>Dr. Sen</td>
+                  <td>Complete Blood Count</td>
+                  <td><span class="badge badge-success">Low</span></td>
+                  <td>
+                    <button class="btn-action" onclick="alert('Uploading Lab PDF...')"><i class="bi bi-upload"></i> Upload</button>
+                    <button class="btn-action"><i class="bi bi-eye-fill"></i> Preview</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUEUE SYSTEM VIEW SECTION -->
+      <div id="view-queue" class="role-view hidden">
+        <div class="header-section" style="margin-bottom: 20px;">
+          <h1>Live Patient Queue System</h1>
+          <p>Monitor real-time token queues, call patients, and manage waiting lists.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Now Serving Token</h5>
+              <p style="font-size:1.8rem; font-weight:800; color:var(--primary);">#024</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--primary);"><i class="bi bi-megaphone-fill"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Patients Waiting</h5>
+              <p style="font-size:1.8rem; font-weight:800; color:var(--warning);">6 Patients</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--warning);"><i class="bi bi-hourglass-split"></i></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-info">
+              <h5>Completed Today</h5>
+              <p style="font-size:1.8rem; font-weight:800; color:var(--success);">18 Tokens</p>
+            </div>
+            <div class="stat-card-icon" style="color:var(--success);"><i class="bi bi-check-circle-fill"></i></div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Live Queue Status</span>
+            <button class="btn-action btn-action-primary" onclick="alert('Calling Next Patient Token')"><i class="bi bi-bell-fill"></i> Call Next Token</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Token #</th>
+                  <th>Patient Name</th>
+                  <th>Doctor</th>
+                  <th>Status</th>
+                  <th>Wait Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>#024</strong></td>
+                  <td>Sakshi Sardhara</td>
+                  <td>Dr. Rajani Shah</td>
+                  <td><span class="badge badge-success">In Room</span></td>
+                  <td>0 mins</td>
+                  <td><button class="btn-action" onclick="alert('Completing Token #024')">Complete</button></td>
+                </tr>
+                <tr>
+                  <td><strong>#025</strong></td>
+                  <td>Jia Patel</td>
+                  <td>Dr. Keshav Kumar</td>
+                  <td><span class="badge badge-warning">Waiting</span></td>
+                  <td>12 mins</td>
+                  <td><button class="btn-action btn-action-primary" onclick="alert('Calling Token #025')">Call</button></td>
+                </tr>
+                <tr>
+                  <td><strong>#026</strong></td>
+                  <td>Dharmik Bosamia</td>
+                  <td>Dr. Amit Sharma</td>
+                  <td><span class="badge badge-warning">Waiting</span></td>
+                  <td>25 mins</td>
+                  <td><button class="btn-action btn-action-primary" onclick="alert('Calling Token #026')">Call</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG BOOK VIEW SECTION -->
+      <div id="view-logbook" class="role-view hidden">
+        <div class="header-section" style="margin-bottom: 20px;">
+          <h1>Clinic Operations Log Book</h1>
+          <p>Historical audit trail of all patient check-ins, consults, and billing receipts.</p>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Daily Operations Audit Log</span>
+            <button class="btn-action" onclick="window.print()"><i class="bi bi-printer"></i> Export Log</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Activity Event</th>
+                  <th>Patient</th>
+                  <th>Department / Operator</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Today, 10:45 AM</td>
+                  <td>Token #024 Called to Doctor Desk</td>
+                  <td>Sakshi Sardhara</td>
+                  <td>Reception Desk</td>
+                  <td><span class="badge badge-success">Logged</span></td>
+                </tr>
+                <tr>
+                  <td>Today, 10:30 AM</td>
+                  <td>New Walk-In Appointment Booked</td>
+                  <td>Jia Patel</td>
+                  <td>Reception Desk</td>
+                  <td><span class="badge badge-success">Logged</span></td>
+                </tr>
+                <tr>
+                  <td>Today, 10:15 AM</td>
+                  <td>Prescription Billing Completed (₹1,500)</td>
+                  <td>Dharmik Bosamia</td>
+                  <td>Pharmacy Hub</td>
+                  <td><span class="badge badge-success">Logged</span></td>
+                </tr>
+                <tr>
+                  <td>Today, 09:50 AM</td>
+                  <td>Diagnostic Lipid Report Uploaded</td>
+                  <td>Shreya Rawat</td>
+                  <td>Pathology Lab</td>
+                  <td><span class="badge badge-success">Logged</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Patient Verification Modal -->
+  <div id="verifyPatientModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:#ffffff; border-radius:20px; max-width:480px; width:100%; padding:2rem; box-shadow:0 25px 50px rgba(0,0,0,0.25); border:1px solid #e2e8f0; position:relative;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem;">
+        <div>
+          <span style="background:#dcfce7; color:#15803d; font-size:0.75rem; font-weight:700; padding:4px 10px; border-radius:6px; text-transform:uppercase; letter-spacing:0.05em;">
+            <i class="bi bi-shield-check"></i> Identity Verified
+          </span>
+          <h3 style="font-size:1.3rem; font-weight:800; margin-top:6px; color:#0f172a;" id="vModalPatientName">Sakshi Sardhara</h3>
+          <p style="font-size:0.8rem; color:#64748b;" id="vModalToken">Token #024 • Appointment 10:00 AM</p>
+        </div>
+        <button onclick="closeVerifyModal()" style="background:none; border:none; font-size:1.5rem; color:#94a3b8; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <div style="background:#f8fafc; border-radius:12px; padding:1rem; border:1px solid #e2e8f0; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.7;">
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Assigned Doctor:</span> <strong id="vModalDoctor">Dr. Patel (Cardiology)</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Consultation Room:</span> <strong>Room 101</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">EHR Patient Code:</span> <code style="color:#2563eb; font-weight:700;">#CARE-PT-8821</code></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Recent Vitals:</span> <strong>BP 135/85 mmHg • HR 78 bpm</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Consultation Fee:</span> <strong style="color:#10b981;">₹500 (Paid via QR)</strong></div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onclick="sendPatientToDoctor()" style="flex:1; padding:0.75rem; border-radius:10px; background:#2563eb; color:#ffffff; border:none; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <i class="bi bi-megaphone-fill"></i> Call to Doctor Desk
+        </button>
+        <button onclick="printTokenPassFromModal()" style="padding:0.75rem 1.25rem; border-radius:10px; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-weight:600; font-size:0.88rem; cursor:pointer;">
+          <i class="bi bi-printer"></i> Print Pass
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentServingTokenNum = 24;
+    let walkInCount = 8;
+    let selectedVerifyPatient = 'Sakshi Sardhara';
+    let selectedVerifyToken = '#024';
+
+    // Interactive Patient Check-In Handler
+    function checkInPatient(buttonEl, patientName, doctorName, timeSlot, rowKey) {
+      currentServingTokenNum++;
+      walkInCount++;
+      const assignedToken = '#' + String(currentServingTokenNum).padStart(3, '0');
+
+      // Update row status
+      const statusSpan = document.getElementById('status-' + rowKey);
+      if (statusSpan) {
+        statusSpan.className = 'badge badge-success';
+        statusSpan.textContent = `Checked In (${assignedToken})`;
+      }
+
+      // Update button to Verify
+      const row = buttonEl.closest('tr');
+      const actionTd = buttonEl.parentElement;
+      actionTd.innerHTML = `
+        <button class="btn-action btn-action-primary" onclick="verifyPatient('${patientName}', '${doctorName}', '${assignedToken}', '${timeSlot}')">
+          <i class="bi bi-shield-check"></i> Verify
+        </button>
+      `;
+
+      // Update Walk-in count card
+      const walkInStat = document.querySelector('.stat-card:nth-child(2) p');
+      if (walkInStat) walkInStat.textContent = `${walkInCount} Tokens`;
+
+      alert(`✅ Patient Checked In Successfully!\n\nPatient: ${patientName}\nAssigned Token: ${assignedToken}\nDoctor: ${doctorName}\n\nPatient added to the Live Queue System!`);
+    }
+
+    // Interactive Patient Verification Modal
+    function verifyPatient(patientName, doctorName, tokenCode, timeSlot) {
+      selectedVerifyPatient = patientName;
+      selectedVerifyToken = tokenCode || '#024';
+
+      document.getElementById('vModalPatientName').textContent = patientName;
+      document.getElementById('vModalToken').textContent = `Token ${selectedVerifyToken} • Time: ${timeSlot || '10:00 AM'}`;
+      document.getElementById('vModalDoctor').textContent = doctorName;
+
+      const modal = document.getElementById('verifyPatientModal');
+      modal.style.display = 'flex';
+    }
+
+    function closeVerifyModal() {
+      document.getElementById('verifyPatientModal').style.display = 'none';
+    }
+
+    function sendPatientToDoctor() {
+      alert(`📢 Announcement Broadcasted:\n\n"Token ${selectedVerifyToken} - ${selectedVerifyPatient}, please proceed to Dr. Patel Room 101."`);
+      closeVerifyModal();
+    }
+
+    function printTokenPassFromModal() {
+      alert(`🖨️ Printing Digital Token Pass for ${selectedVerifyPatient} (${selectedVerifyToken})...`);
+    }
+
+    function printVisitReceipt(name, token, amount) {
+      alert(`🖨️ Printing Clinic Consultation Receipt:\n\nPatient: ${name}\nToken: ${token}\nAmount: ${amount}\nDate: ${new Date().toLocaleDateString()}\nStatus: Verified & Paid`);
+    }
+
+    // Switch sidebar views (Dashboard, Queue System, Log Book)
+    function switchSidebarView(viewId, element) {
+      if (element) {
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      const views = ['receptionist', 'pharmacist', 'labtech', 'queue', 'logbook'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) target.classList.remove('hidden');
+    }
+
+    // Switch dynamic views from topbar dropdown
+    function changeRoleView() {
+      const switcher = document.getElementById('role-switcher');
+      const selectedRole = switcher.value;
+      
+      // Hide all role sections
+      const views = ['receptionist', 'pharmacist', 'labtech'];
+      views.forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+      });
+
+      // Show selected section
+      document.getElementById(`view-${selectedRole}`).classList.remove('hidden');
+
+      // Update avatar/topbar details
+      const av = document.getElementById('staff-av');
+      const name = document.getElementById('staff-name');
+      
+      if (selectedRole === 'receptionist') {
+        av.innerText = 'RC';
+        name.innerText = 'Reception Desk';
+      } else if (selectedRole === 'pharmacist') {
+        av.innerText = 'PH';
+        name.innerText = 'Pharmacy Hub';
+        loadChart(); // Init chart for pharmacist
+      } else if (selectedRole === 'labtech') {
+        av.innerText = 'LT';
+        name.innerText = 'Pathology Lab';
+      }
+    }
+
+    // Chart initializer
+    let chartInst = null;
+    function loadChart() {
+      if (chartInst) return; // Load once
+      const ctx = document.getElementById('stockDistributionChart').getContext('2d');
+      chartInst = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+          datasets: [{
+            data: [45, 4, 1],
+            backgroundColor: ['#10B981', '#F59E0B', '#EF4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  </script>
+  <script src="ai-widget.js"></script>
+  <script src="global-nav.js"></script>
+</body>
+</html>
+
+
+
+
+
