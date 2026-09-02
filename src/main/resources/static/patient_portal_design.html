@@ -828,19 +828,19 @@
                   <td><strong>Lab Report</strong></td>
                   <td>Complete Blood Count</td>
                   <td>July 18, 2026</td>
-                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                  <td><button class="btn-action-sm" onclick="downloadLabReportPdf('Complete Blood Count', 'July 18, 2026', 'Dr. Sakshi Patel')"><i class="bi bi-download"></i> PDF</button></td>
                 </tr>
                 <tr>
                   <td><strong>Prescription</strong></td>
                   <td>Amoxicillin 500mg</td>
                   <td>July 15, 2026</td>
-                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                  <td><button class="btn-action-sm" onclick="downloadPrescriptionPdf('Amoxicillin 500mg', 'July 15, 2026', 'Dr. Sakshi Patel')"><i class="bi bi-download"></i> PDF</button></td>
                 </tr>
                 <tr>
                   <td><strong>Lab Report</strong></td>
                   <td>Lipid Profile Panel</td>
                   <td>June 10, 2026</td>
-                  <td><button class="btn-action-sm"><i class="bi bi-download"></i> PDF</button></td>
+                  <td><button class="btn-action-sm" onclick="downloadLabReportPdf('Lipid Profile Panel', 'June 10, 2026', 'Dr. Dharmik Bosamia')"><i class="bi bi-download"></i> PDF</button></td>
                 </tr>
               </tbody>
             </table>
@@ -1033,14 +1033,14 @@
                   <td>General consultation + Lab fee</td>
                   <td>₹850</td>
                   <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Paid</span></td>
-                  <td><button class="btn-action-sm"><i class="bi bi-receipt"></i> Print</button></td>
+                  <td><button class="btn-action-sm" onclick="downloadInvoicePdf('#INV-4091', 'General consultation + Lab fee', 850, 'July 18, 2026')"><i class="bi bi-receipt"></i> Print</button></td>
                 </tr>
                 <tr>
                   <td>#INV-3082</td>
                   <td>Pediatric wellness review</td>
                   <td>₹500</td>
                   <td><span class="badge badge-success" style="background-color: rgba(16,185,129,0.12); color:var(--success);">Paid</span></td>
-                  <td><button class="btn-action-sm"><i class="bi bi-receipt"></i> Print</button></td>
+                  <td><button class="btn-action-sm" onclick="downloadInvoicePdf('#INV-3082', 'Pediatric wellness review', 500, 'July 10, 2026')"><i class="bi bi-receipt"></i> Print</button></td>
                 </tr>
               </tbody>
             </table>
@@ -1255,6 +1255,381 @@
         doc.save(`CareCore_Medical_Report_${recordCode}.pdf`);
       } else {
         alert('Generating EHR PDF Report for ' + recordCode + '...');
+      }
+    }
+
+    // Official Pathology Laboratory Report PDF Generator
+    function downloadLabReportPdf(testName, date, doctor) {
+      if (window.jspdf) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header Banner
+        doc.setFillColor(16, 185, 129); // Medical Emerald Green
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.text('CARE CORE DIAGNOSTIC LABORATORY', 14, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('NABL Accredited Pathology & Biochemistry Center | ISO 15189:2022', 14, 25);
+
+        // Document Title
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.text('OFFICIAL DIAGNOSTIC PATHOLOGY REPORT', 14, 46);
+
+        // Patient & Clinical Meta Info Box
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, 52, 182, 28, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(14, 52, 182, 28, 'S');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Patient Name:', 18, 60);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Sakshi Sardhara', 46, 60);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Age / Gender:', 18, 67);
+        doc.setFont('helvetica', 'normal');
+        doc.text('22 Yrs / Female', 46, 67);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Sample ID:', 18, 74);
+        doc.setFont('helvetica', 'normal');
+        doc.text('LAB-2026-9941', 46, 74);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Date Collected:', 110, 60);
+        doc.setFont('helvetica', 'normal');
+        doc.text(date || 'July 18, 2026', 142, 60);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Referring Doctor:', 110, 67);
+        doc.setFont('helvetica', 'normal');
+        doc.text(doctor || 'Dr. Sakshi Patel', 142, 67);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Test Requested:', 110, 74);
+        doc.setFont('helvetica', 'normal');
+        doc.text(testName, 142, 74);
+
+        // Test Section Heading
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(16, 185, 129);
+        doc.text('INVESTIGATION: ' + testName.toUpperCase(), 14, 90);
+
+        // Table Header
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, 96, 182, 10, 'F');
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Test Parameter', 20, 103);
+        doc.text('Observed Value', 85, 103);
+        doc.text('Reference Units', 125, 103);
+        doc.text('Biological Interval', 160, 103);
+
+        let rows = [];
+        if (testName.toLowerCase().includes('blood') || testName.toLowerCase().includes('cbc')) {
+          rows = [
+            { param: 'Hemoglobin (Hb)', val: '13.8', unit: 'g/dL', ref: '12.0 - 15.5 (Normal)' },
+            { param: 'Total Leucocyte Count (WBC)', val: '6,800', unit: '/cumm', ref: '4,000 - 11,000 (Normal)' },
+            { param: 'Platelet Count', val: '285,000', unit: '/cumm', ref: '150,000 - 450,000' },
+            { param: 'Red Blood Cell (RBC)', val: '4.65', unit: 'mil/uL', ref: '3.8 - 5.2' },
+            { param: 'Hematocrit (PCV)', val: '41.2', unit: '%', ref: '37.0 - 48.0' },
+            { param: 'Neutrophils', val: '62', unit: '%', ref: '40 - 75' },
+            { param: 'Lymphocytes', val: '30', unit: '%', ref: '20 - 45' },
+            { param: 'Eosinophils', val: '04', unit: '%', ref: '01 - 06' },
+            { param: 'Monocytes', val: '04', unit: '%', ref: '02 - 10' }
+          ];
+        } else {
+          rows = [
+            { param: 'Total Cholesterol', val: '185', unit: 'mg/dL', ref: '< 200 (Desirable)' },
+            { param: 'Triglycerides', val: '130', unit: 'mg/dL', ref: '< 150 (Normal)' },
+            { param: 'HDL Cholesterol (Good)', val: '54', unit: 'mg/dL', ref: '> 50 (Optimal)' },
+            { param: 'LDL Cholesterol (Calculated)', val: '105', unit: 'mg/dL', ref: '< 100 (Optimal)' },
+            { param: 'VLDL Cholesterol', val: '26', unit: 'mg/dL', ref: '05 - 40' },
+            { param: 'Total / HDL Ratio', val: '3.4', unit: 'Ratio', ref: '3.0 - 5.0 (Low Risk)' }
+          ];
+        }
+
+        let y = 114;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(51, 65, 85);
+
+        rows.forEach((r, idx) => {
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y - 6, 182, 8, 'F');
+          }
+          doc.text(r.param, 20, y);
+          doc.setFont('helvetica', 'bold');
+          doc.text(r.val, 85, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(r.unit, 125, y);
+          doc.text(r.ref, 160, y);
+          y += 9;
+        });
+
+        // Pathologist Note Box
+        doc.setFillColor(240, 253, 244);
+        doc.rect(14, y + 4, 182, 22, 'F');
+        doc.setDrawColor(187, 247, 208);
+        doc.rect(14, y + 4, 182, 22, 'S');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(22, 101, 52);
+        doc.text('Diagnostic Impression & Clinical Notes:', 20, y + 12);
+        doc.setFont('helvetica', 'normal');
+        doc.text('All parameters are within normal physiological biological reference intervals.', 20, y + 20);
+
+        // Signatures
+        doc.setDrawColor(148, 163, 184);
+        doc.line(20, y + 55, 75, y + 55);
+        doc.line(130, y + 55, 185, y + 55);
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('Medical Laboratory Technologist', 20, y + 61);
+        doc.text('Dr. Dharmik Bosamia, MD', 130, y + 61);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Verified at Central Pathology Hub', 20, y + 66);
+        doc.text('Consultant Pathologist (Reg: MMC-74892)', 130, y + 66);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.text('This is a computer generated diagnostic report certified by Care Core Laboratory Services.', 14, 285);
+
+        doc.save(`CareCore_LabReport_${testName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      } else {
+        alert('Generating Lab Report PDF for ' + testName + '...');
+        window.print();
+      }
+    }
+
+    // Official Outpatient Prescription PDF Generator
+    function downloadPrescriptionPdf(medication, date, doctor) {
+      if (window.jspdf) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header Banner
+        doc.setFillColor(37, 99, 235); // Care Core Blue
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.text('CARE CORE CLINIC & OPD HEALTHCARE', 14, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('123 Health Care Avenue, Mumbai - 400001 | Tel: +91 98765 43210', 14, 25);
+
+        // Document Title
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.text('DIGITAL OUTPATIENT PRESCRIPTION (Rx)', 14, 46);
+
+        // Patient Box
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, 52, 182, 28, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(14, 52, 182, 28, 'S');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Patient Name:', 18, 60);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Sakshi Sardhara', 46, 60);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Age / Gender:', 18, 67);
+        doc.setFont('helvetica', 'normal');
+        doc.text('22 Yrs / Female', 46, 67);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Weight / BP:', 18, 74);
+        doc.setFont('helvetica', 'normal');
+        doc.text('56 kg  |  120/80 mmHg', 46, 74);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Prescription Date:', 110, 60);
+        doc.setFont('helvetica', 'normal');
+        doc.text(date || 'July 15, 2026', 145, 60);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Consultant:', 110, 67);
+        doc.setFont('helvetica', 'normal');
+        doc.text(doctor || 'Dr. Sakshi Patel', 145, 67);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Rx Number:', 110, 74);
+        doc.setFont('helvetica', 'normal');
+        doc.text('RX-2026-0814', 145, 74);
+
+        // Rx Symbol
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(37, 99, 235);
+        doc.text('Rx', 14, 94);
+
+        // Medicines Table Header
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, 100, 182, 9, 'F');
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('#', 18, 106);
+        doc.text('Medication & Strength', 28, 106);
+        doc.text('Dosage Schedule', 95, 106);
+        doc.text('Duration', 145, 106);
+        doc.text('Instructions', 165, 106);
+
+        const meds = [
+          { num: '1', name: medication || 'Amoxicillin 500mg Capsule', dose: '1 - 0 - 1', dur: '5 Days', inst: 'After Food' },
+          { num: '2', name: 'Paracetamol 650mg Tablet', dose: 'SOS (When Needed)', dur: '3 Days', inst: 'After Food' },
+          { num: '3', name: 'Pantoprazole 40mg Tablet', dose: '1 - 0 - 0', dur: '5 Days', inst: 'Before Food' },
+          { num: '4', name: 'Vitamin C 500mg Chewable', dose: '0 - 1 - 0', dur: '10 Days', inst: 'After Lunch' }
+        ];
+
+        let my = 117;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(51, 65, 85);
+
+        meds.forEach((m, idx) => {
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, my - 6, 182, 8, 'F');
+          }
+          doc.text(m.num, 18, my);
+          doc.setFont('helvetica', 'bold');
+          doc.text(m.name, 28, my);
+          doc.setFont('helvetica', 'normal');
+          doc.text(m.dose, 95, my);
+          doc.text(m.dur, 145, my);
+          doc.text(m.inst, 165, my);
+          my += 10;
+        });
+
+        // Advice Box
+        doc.setFillColor(239, 246, 255);
+        doc.rect(14, my + 6, 182, 24, 'F');
+        doc.setDrawColor(191, 219, 254);
+        doc.rect(14, my + 6, 182, 24, 'S');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 64, 175);
+        doc.text('General Medical Advice & Dietary Instructions:', 20, my + 14);
+        doc.setFont('helvetica', 'normal');
+        doc.text('• Complete full 5-day antibiotic course even if symptoms subside.', 20, my + 21);
+        doc.text('• Stay well hydrated with plenty of oral fluids. Review in OPD if fever persists.', 20, my + 27);
+
+        // Doctor Signature
+        doc.setDrawColor(37, 99, 235);
+        doc.line(130, my + 58, 185, my + 58);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Dr. Sakshi Patel, MD', 130, my + 65);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Reg No: MMC-2014/08/3921', 130, my + 70);
+        doc.text('Care Core Outpatient Department', 130, my + 75);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.text('Authorized digital e-prescription valid at Care Core Clinic Central Pharmacy.', 14, 285);
+
+        doc.save(`CareCore_Prescription_${medication.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      } else {
+        alert('Generating Prescription PDF for ' + medication + '...');
+        window.print();
+      }
+    }
+
+    // Official Outpatient Billing Receipt PDF Generator
+    function downloadInvoicePdf(invCode, desc, amount, date) {
+      if (window.jspdf) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFillColor(30, 41, 59);
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.text('CARE CORE CLINIC — OFFICIAL RECEIPT', 14, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Tax Invoice & Outpatient Billing Receipt | GSTIN: 27AABCC1234F1Z9', 14, 25);
+
+        // Info
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('RECEIPT NUMBER: ' + invCode, 14, 46);
+
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, 52, 182, 28, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(14, 52, 182, 28, 'S');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Patient Name: Sakshi Sardhara', 18, 60);
+        doc.text('Billing Date: ' + (date || 'July 18, 2026'), 18, 68);
+        doc.text('Payment Status: PAID / SETTLED IN FULL', 18, 76);
+        doc.text('Payment Method: UPI / QR Code Digital Transfer', 110, 60);
+        doc.text('Cashier Desk: Front Desk Counter 01', 110, 68);
+        doc.text('Transaction Ref: TXN-893201481', 110, 76);
+
+        // Items Box
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, 90, 182, 10, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Service Description', 20, 97);
+        doc.text('Amount (INR)', 155, 97);
+
+        doc.setFont('helvetica', 'normal');
+        doc.text(desc || 'Outpatient Consultation & Diagnostic Profile', 20, 110);
+        doc.text('Rs. ' + amount + '.00', 155, 110);
+
+        doc.setDrawColor(226, 232, 240);
+        doc.line(14, 120, 196, 120);
+
+        // Total
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(16, 185, 129);
+        doc.text('Total Amount Paid: Rs. ' + amount + '.00', 120, 135);
+
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Thank you for choosing Care Core Clinic. For billing queries, call +91 98765 43210.', 14, 280);
+
+        doc.save(`CareCore_Receipt_${invCode.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+      } else {
+        alert('Generating Invoice PDF for ' + invCode + '...');
+        window.print();
       }
     }
   </script>
