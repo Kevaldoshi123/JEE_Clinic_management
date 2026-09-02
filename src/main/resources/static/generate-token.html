@@ -258,11 +258,23 @@
 
   <script>
     // Detect host / LAN IP for mobile scan compatibility
-    const hostIp = window.location.hostname === 'localhost' ? '192.168.1.4' : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    const baseUrl = `http://${hostIp}${port}`;
+    let baseUrl = window.location.origin;
+    async function initNetworkBaseUrl() {
+      try {
+        const res = await fetch('/api/public/server-info');
+        if (res.ok) {
+          const info = await res.json();
+          if (info.baseUrl) baseUrl = info.baseUrl;
+        }
+      } catch(e) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          baseUrl = `http://10.32.2.59:${window.location.port || '8085'}`;
+        }
+      }
+    }
+    initNetworkBaseUrl();
 
-    function generateClinicToken() {
+    async function generateClinicToken() {
       const name = document.getElementById('patientNameInput').value.trim() || 'Walk-In Patient';
       const phone = document.getElementById('patientPhoneInput').value.trim();
       const dept = document.getElementById('deptSelect').value;

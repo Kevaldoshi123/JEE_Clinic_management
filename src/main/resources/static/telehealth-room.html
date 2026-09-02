@@ -418,9 +418,23 @@
     const doctorName = urlParams.get('doctor') || 'Dr. Sakshi Patel';
     const roomCode = urlParams.get('room') || 'cardiology-patel-025';
 
-    const hostIp = window.location.hostname === 'localhost' ? '192.168.1.4' : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    const shareableUrl = `http://${hostIp}${port}/telehealth-room.html?room=${roomCode}&patient=${encodeURIComponent(patientName)}&doctor=${encodeURIComponent(doctorName)}`;
+    let shareableUrl = `${window.location.origin}/telehealth-room.html?room=${roomCode}&patient=${encodeURIComponent(patientName)}&doctor=${encodeURIComponent(doctorName)}`;
+    async function initTelehealthBaseUrl() {
+      try {
+        const res = await fetch('/api/public/server-info');
+        if (res.ok) {
+          const info = await res.json();
+          if (info.baseUrl) {
+            shareableUrl = `${info.baseUrl}/telehealth-room.html?room=${roomCode}&patient=${encodeURIComponent(patientName)}&doctor=${encodeURIComponent(doctorName)}`;
+          }
+        }
+      } catch(e) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          shareableUrl = `http://10.32.2.59:${window.location.port || '8085'}/telehealth-room.html?room=${roomCode}&patient=${encodeURIComponent(patientName)}&doctor=${encodeURIComponent(doctorName)}`;
+        }
+      }
+    }
+    initTelehealthBaseUrl();
 
     document.getElementById('roomSubtitle').textContent = `${doctorName} • ${patientName}`;
     document.getElementById('doctorDisplayName').textContent = doctorName;

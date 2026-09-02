@@ -593,7 +593,27 @@ function aptLabClear(e) {
   document.getElementById('aptLabFileChip').style.display = 'none';
 }
 
-function qrUrl(docId){ return `${window.location.origin}${window.location.pathname}?doc=${docId}&join=1`; }
+let _lanBaseUrl = window.location.origin;
+(async function initLanInfo() {
+  try {
+    const res = await fetch('/api/public/server-info');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.baseUrl) _lanBaseUrl = data.baseUrl;
+    }
+  } catch(e) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      _lanBaseUrl = `http://10.32.2.59:${window.location.port || '8085'}`;
+    }
+  }
+})();
+
+function qrUrl(docId){
+  const base = (_lanBaseUrl && (_lanBaseUrl.startsWith('http://192.') || _lanBaseUrl.startsWith('http://10.') || _lanBaseUrl.startsWith('http://172.'))) 
+    ? _lanBaseUrl 
+    : ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `http://10.32.2.59:${window.location.port || '8085'}` : window.location.origin);
+  return `${base}${window.location.pathname}?doc=${docId}&join=1`;
+}
 
 function renderDocQrPanels(){
   const grid = document.getElementById('docQrGrid');

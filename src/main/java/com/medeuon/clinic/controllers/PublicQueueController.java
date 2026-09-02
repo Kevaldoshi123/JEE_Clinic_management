@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -24,6 +27,44 @@ public class PublicQueueController {
 
     @Autowired
     private QueueStateRepository queueStateRepository;
+
+    // 0. Server Network Info (Auto-detects LAN Wi-Fi IP for Mobile QR codes)
+    @GetMapping("/public/server-info")
+    public ResponseEntity<?> getServerInfo(jakarta.servlet.http.HttpServletRequest request) {
+        String hostIp = "127.0.0.1";
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress() && !addr.getHostAddress().startsWith("169.254")) {
+                        String candidate = addr.getHostAddress();
+                        if (!candidate.startsWith("192.168.135") && !candidate.startsWith("192.168.22")) {
+                            hostIp = candidate;
+                            break;
+                        } else if (hostIp.equals("127.0.0.1")) {
+                            hostIp = candidate;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        int port = request.getServerPort();
+        if (port <= 0) port = 8085;
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("ip", hostIp);
+        res.put("port", port);
+        res.put("baseUrl", "http://" + hostIp + ":" + port);
+        res.put("kioskUrl", "http://" + hostIp + ":" + port + "/generate-token.html");
+        res.put("displayUrl", "http://" + hostIp + ":" + port + "/display.html");
+        res.put("patientUrl", "http://" + hostIp + ":" + port + "/patient_portal_design.html");
+        return ResponseEntity.ok(res);
+    }
 
     // 1. Clinic Data (Get all doctors for index.js dropdown/grid)
     @GetMapping("/clinic/data")

@@ -98,7 +98,27 @@ function filterDoctors() {
   renderDoctorList(filtered, 'doctorListQ');
 }
 
-function qrUrl(docId) { return `${window.location.origin}${window.location.pathname}?doc=${docId}&join=1`; }
+let _patLanBaseUrl = window.location.origin;
+(async function initPatLanInfo() {
+  try {
+    const res = await fetch('/api/public/server-info');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.baseUrl) _patLanBaseUrl = data.baseUrl;
+    }
+  } catch(e) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      _patLanBaseUrl = `http://10.32.2.59:${window.location.port || '8085'}`;
+    }
+  }
+})();
+
+function qrUrl(docId) {
+  const base = (_patLanBaseUrl && (_patLanBaseUrl.startsWith('http://192.') || _patLanBaseUrl.startsWith('http://10.') || _patLanBaseUrl.startsWith('http://172.'))) 
+    ? _patLanBaseUrl 
+    : ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `http://10.32.2.59:${window.location.port || '8085'}` : window.location.origin);
+  return `${base}${window.location.pathname}?doc=${docId}&join=1`;
+}
 
 function renderDocQrPanels() {
   const grid = document.getElementById('docQrGrid');

@@ -99,7 +99,10 @@ async function loadDoctors(){
   }catch(e){console.error('❌ Network Client Error: Failed to gather structural doctor lists maps:', e);}
 }
 
-function qrUrl(docId){ return `${window.location.origin}/?doc=${docId}&join=1`; }
+function qrUrl(docId){
+  const base = (_serverInfo && _serverInfo.baseUrl) ? _serverInfo.baseUrl : ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? `http://10.32.2.59:${window.location.port || '8085'}` : window.location.origin);
+  return `${base}/?doc=${docId}&join=1`;
+}
 
 function renderDisplayQRs(){
   if (!doctors.length) return;
@@ -214,7 +217,12 @@ async function loadQueue(){
     if (boardTitle) boardTitle.textContent = data.boardName || 'General Cardiology Board';
     document.getElementById('displayWaiting').textContent=Math.max(0,(data.last_token||0)-cur)||'—';
     document.getElementById('displayLast').textContent=data.last_token||'—';
-  /* ── QR CODE SCANNER MODAL ── */
+  } catch(e) {
+    console.warn('Queue state fetch error:', e);
+  }
+}
+
+/* ── QR CODE SCANNER MODAL ── */
 function openQrScannerModal() {
   let modal = document.getElementById('qrScannerModal');
   if (!modal) {
@@ -356,20 +364,58 @@ async function loadTodayQueueList() {
   }).join('');
 }
 
-function initKioskQr() {
-  const qrContainer = document.getElementById('kioskQrContainer');
-  if (qrContainer && !qrContainer.hasChildNodes()) {
-    const hostIp = window.location.hostname === 'localhost' ? '192.168.1.4' : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    const mobileKioskUrl = `http://${hostIp}${port}/generate-token.html`;
+let _serverInfo = null;
+async function getServerInfo() {
+  if (_serverInfo) return _serverInfo;
+  try {
+    const res = await fetch('/api/public/server-info');
+    if (res.ok) {
+      _serverInfo = await res.json();
+      return _serverInfo;
+    }
+  } catch(e) {
+    console.warn('Server info fetch failed, using fallback:', e);
+  }
+  const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '10.32.2.59' : window.location.hostname;
+  const port = window.location.port ? `:${window.location.port}` : ':8085';
+  _serverInfo = {
+    ip: host,
+    port: port.replace(':', ''),
+    baseUrl: `http://${host}${port}`,
+    kioskUrl: `http://${host}${port}/generate-token.html`,
+    displayUrl: `http://${host}${port}/display.html`,
+    patientUrl: `http://${host}${port}/patient_portal_design.html`
+  };
+  return _serverInfo;
+}
 
-    new QRCode(qrContainer, {
-      text: mobileKioskUrl,
-      width: 130,
-      height: 130,
-      colorDark: "#0f172a",
-      colorLight: "#ffffff"
-    });
+async function initKioskQr() {
+  const qrContainer = document.getElementById('kioskQrContainer');
+  if (!qrContainer) return;
+  qrContainer.innerHTML = '';
+
+  const info = await getServerInfo();
+  const mobileKioskUrl = info.kioskUrl || `${info.baseUrl}/generate-token.html`;
+
+  new QRCode(qrContainer, {
+    text: mobileKioskUrl,
+    width: 140,
+    height: 140,
+    colorDark: "#0f172a",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  const parent = qrContainer.parentElement;
+  if (parent) {
+    let linkBox = document.getElementById('kioskQrDirectLink');
+    if (!linkBox) {
+      linkBox = document.createElement('div');
+      linkBox.id = 'kioskQrDirectLink';
+      linkBox.style.cssText = 'font-size:0.75rem; color:#475569; margin-top:8px; word-break:break-all; font-family:monospace; background:#f8fafc; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0;';
+      qrContainer.insertAdjacentElement('afterend', linkBox);
+    }
+    linkBox.innerHTML = `📲 <strong>Mobile URL:</strong> <a href="${mobileKioskUrl}" target="_blank" style="color:#2563eb; text-decoration:underline;">${mobileKioskUrl}</a>`;
   }
 }
 
