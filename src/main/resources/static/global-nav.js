@@ -99,7 +99,6 @@
       <a href="doctor_portal_design.html" class="c-portal-dropdown-item">🩺 Doctor Consultation Desk</a>
       <a href="staff_portal_design.html" class="c-portal-dropdown-item">💊 Staff Reception & Pharmacy</a>
       <a href="admin_portal_design.html" class="c-portal-dropdown-item">📊 Admin Governance Panel</a>
-      <a href="telehealth-room.html" class="c-portal-dropdown-item">📹 Telehealth Virtual Room</a>
       <a href="register.html" class="c-portal-dropdown-item">📝 Doctor Registration</a>
     </div>
   `;
