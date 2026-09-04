@@ -240,11 +240,18 @@
       </div>
       <div class="pass-row">
         <span style="color:var(--muted);">Queue Status:</span>
-        <strong style="color:#f59e0b;">Waiting (~15 mins)</strong>
+        <strong id="passQueueStatus" style="color:#f59e0b;">Waiting (~15 mins)</strong>
       </div>
       <div class="pass-row">
         <span style="color:var(--muted);">Clinic Counter:</span>
-        <strong>Room 102</strong>
+        <strong id="passClinicCounter">Room 101</strong>
+      </div>
+
+      <!-- Live Notification Banner when Doctor Calls Patient -->
+      <div id="calledAlertBanner" style="display:none; margin:1.25rem 0 0.5rem 0; padding:1.1rem; border-radius:14px; background:linear-gradient(135deg, #ecfdf5, #d1fae5); border:2px solid #10b981; color:#065f46; text-align:center; box-shadow:0 10px 25px rgba(16,185,129,0.25);">
+        <div style="font-size:1.25rem; font-weight:800; margin-bottom:4px; color:#047857;">🎉 IT'S YOUR TURN!</div>
+        <div style="font-size:0.92rem; font-weight:700; margin-bottom:4px; color:#065f46;">🟢 NOW SERVING</div>
+        <div style="font-size:0.85rem; color:#064e3b;" id="calledRoomDetails">Please proceed inside Consultation Room 101 immediately.</div>
       </div>
 
       <div id="passQrCode" style="margin:1.25rem auto 0.5rem auto; display:flex; justify-content:center; background:#ffffff; padding:10px; border-radius:12px; border:1px solid #e2e8f0; width:fit-content;"></div>
@@ -259,6 +266,9 @@
   <script>
     // Detect host / LAN IP for mobile scan compatibility
     let baseUrl = window.location.origin;
+    let myActiveTokenNumber = null;
+    let tokenStatusPollInterval = null;
+
     async function initNetworkBaseUrl() {
       try {
         const res = await fetch('/api/public/server-info');
@@ -268,57 +278,133 @@
         }
       } catch(e) {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          baseUrl = `http://10.32.2.59:${window.location.port || '8085'}`;
+          baseUrl = `http://10.200.124.54:${window.location.port || '8085'}`;
         }
       }
     }
     initNetworkBaseUrl();
+
+    function playAlertChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.15);
+          gain.gain.setValueAtTime(0.3, now + i * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.15);
+          osc.stop(now + i * 0.15 + 0.4);
+        });
+      } catch(e) {}
+    }
 
     async function generateClinicToken() {
       const name = document.getElementById('patientNameInput').value.trim() || 'Walk-In Patient';
       const phone = document.getElementById('patientPhoneInput').value.trim();
       const dept = document.getElementById('deptSelect').value;
 
-      // Increment token
-      let tokenCounter = parseInt(localStorage.getItem('carecore_token_counter') || '26') + 1;
-      localStorage.setItem('carecore_token_counter', tokenCounter);
-      const tokenStr = '#' + String(tokenCounter).padStart(3, '0');
-
       let doctorName = 'Dr. Sakshi Patel';
       if (dept === 'Dermatology') doctorName = 'Dr. Rajani Shah';
       if (dept === 'General Medicine') doctorName = 'Dr. Keshav Kumar';
       if (dept === 'Pathology') doctorName = 'Pathology Desk';
 
-      // Save into active clinic tokens list
-      let tokens = JSON.parse(localStorage.getItem('carecore_active_tokens') || '[]');
-      const newToken = {
-        token: tokenStr,
-        name: name,
-        doctor: doctorName,
-        dept: dept,
-        status: 'Waiting',
-        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-      };
-      tokens.push(newToken);
-      localStorage.setItem('carecore_active_tokens', JSON.stringify(tokens));
+      let tokenNum = null;
+      let tokenStr = '#027';
+
+      // Call Backend REST API
+      try {
+        const res = await fetch('/api/public/queue/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            phone: phone,
+            dept: dept,
+            doctorName: doctorName
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          tokenStr = data.token;
+          tokenNum = data.tokenNumber;
+          doctorName = data.doctor || doctorName;
+        }
+      } catch(e) {
+        console.warn('Backend API fetch failed, fallback to local generation:', e);
+      }
+
+      if (!tokenNum) {
+        let tokenCounter = parseInt(localStorage.getItem('carecore_token_counter') || '26') + 1;
+        localStorage.setItem('carecore_token_counter', tokenCounter);
+        tokenNum = tokenCounter;
+        tokenStr = '#' + String(tokenCounter).padStart(3, '0');
+      }
+
+      myActiveTokenNumber = tokenNum;
 
       // Update Pass UI
       document.getElementById('tokenFormBox').style.display = 'none';
       document.getElementById('passTokenNum').textContent = tokenStr;
       document.getElementById('passPatientName').textContent = name;
       document.getElementById('passDoctorName').textContent = doctorName;
+      document.getElementById('passQueueStatus').innerHTML = '<span style="color:#f59e0b;">🟡 Waiting in Queue</span>';
+      document.getElementById('passClinicCounter').textContent = dept.includes('Cardiology') ? 'Room 101' : (dept.includes('Dermatology') ? 'Room 103' : 'Room 102');
       document.getElementById('tokenPassBox').style.display = 'block';
 
       // Generate Pass QR Code with Mobile Wi-Fi URL
       const qrEl = document.getElementById('passQrCode');
       qrEl.innerHTML = '';
       new QRCode(qrEl, {
-        text: `${baseUrl}/queue-checkin.html?token=${tokenCounter}`,
+        text: `${baseUrl}/generate-token.html?token=${tokenNum}`,
         width: 120,
         height: 120,
         colorDark: "#0f172a",
         colorLight: "#ffffff"
       });
+
+      // Start Live Polling for Doctor's Call Action
+      startTokenStatusLivePolling(tokenNum, doctorName);
+    }
+
+    function startTokenStatusLivePolling(tokenNum, doctorName) {
+      if (tokenStatusPollInterval) clearInterval(tokenStatusPollInterval);
+      let alreadyChimed = false;
+
+      tokenStatusPollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/public/queue/token-status?tokenNumber=${tokenNum}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.isNowServing || data.status === 'Now Serving') {
+              // Patient has been approved / called by doctor!
+              const statusEl = document.getElementById('passQueueStatus');
+              if (statusEl) statusEl.innerHTML = '<span style="color:#10b981; font-weight:800;">🟢 NOW SERVING (Active)</span>';
+
+              const banner = document.getElementById('calledAlertBanner');
+              if (banner) {
+                banner.style.display = 'block';
+                const roomText = document.getElementById('calledRoomDetails');
+                if (roomText) roomText.textContent = `Please proceed inside ${data.room || 'Room 101'} (${data.doctor || doctorName}) immediately.`;
+              }
+
+              if (!alreadyChimed) {
+                playAlertChime();
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
+                alreadyChimed = true;
+              }
+            } else if (data.status === 'Completed') {
+              const statusEl = document.getElementById('passQueueStatus');
+              if (statusEl) statusEl.innerHTML = '<span style="color:#64748b; font-weight:700;">⚪ Consultation Completed</span>';
+            }
+          }
+        } catch(e) {}
+      }, 2000);
     }
   </script>
   <script src="global-nav.js"></script>

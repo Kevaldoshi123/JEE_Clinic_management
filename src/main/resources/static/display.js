@@ -181,22 +181,27 @@ function _selectDispQrDoctor(docId){
 
 /* ── LIVE QUEUE STATE ── */
 async function loadQueue(){
-  if (!selectedDocId) return;
   try{
-    const res=await fetch(`${API}/queue/state?doctorId=${selectedDocId}`);
-    const data=await res.json();
-    const cur=data.current_number||0;
-    const serverActionTs=data.action_ts||0;
+    const url = selectedDocId ? `${API}/queue/state?doctorId=${selectedDocId}` : `${API}/queue/state`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const cur = data.rawCurrentNumber || data.current_number || parseInt(data.currentNumber) || 24;
+    const serverActionTs = data.action_ts || data.actionTs || 0;
 
     if (serverActionTs !== 0 && serverActionTs > lastActionTs) {
       if (lastActionTs !== 0) {
-        playChime(); showCallAlert(cur, data.last_action); speakNumber(cur);
-        const el = document.getElementById('displayCurrent');
-        if(el){el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');}
+        playChime();
+        showCallAlert(data.currentNumber ? '#' + data.currentNumber : '#' + cur, data.last_action);
+        speakNumber(cur);
+        const el = document.getElementById('boardTokenNumber');
+        if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
       }
-      lastActionTs = serverActionTs; lastKnown = cur;
+      lastActionTs = serverActionTs;
+      lastKnown = cur;
+      loadTodayQueueList();
     } else if (lastActionTs === 0) {
-      lastActionTs = serverActionTs; lastKnown = cur;
+      lastActionTs = serverActionTs;
+      lastKnown = cur;
     }
 
     // Populate Screenshot Card Elements
@@ -215,8 +220,8 @@ async function loadQueue(){
     if (boardCapPct) boardCapPct.textContent = data.capacityProcessed || '75%';
     if (boardCapBar) boardCapBar.style.width = (data.capacityPctNum || 75) + '%';
     if (boardTitle) boardTitle.textContent = data.boardName || 'General Cardiology Board';
-    document.getElementById('displayWaiting').textContent=Math.max(0,(data.last_token||0)-cur)||'—';
-    document.getElementById('displayLast').textContent=data.last_token||'—';
+    document.getElementById('displayWaiting').textContent = data.patientsWaiting ? data.patientsWaiting.replace(' Patients', '') : '—';
+    document.getElementById('displayLast').textContent = data.lastToken || data.last_token || '—';
   } catch(e) {
     console.warn('Queue state fetch error:', e);
   }
@@ -320,42 +325,61 @@ async function loadTodayQueueList() {
   const tbody = document.getElementById('todayQueueDisplayList');
   if (!tbody) return;
 
-  // Base production active tokens
-  let tokenRows = [
-    { token: '#024', name: 'Sakshi Sardhara', doctor: 'Dr. Sakshi Patel', dept: 'General Cardiology (Room 101)', status: 'Active', time: '10:30 AM' },
-    { token: '#025', name: 'Jia Patel', doctor: 'Dr. Keshav Kumar', dept: 'Cardiology (Room 102)', status: 'Waiting', time: '10:45 AM' },
-    { token: '#026', name: 'Aarav Sharma', doctor: 'Dr. Sakshi Patel', dept: 'Cardiology (Room 101)', status: 'Waiting', time: '11:00 AM' }
-  ];
+  let tokenRows = [];
 
-  // Merge any dynamic tokens generated from Mobile QR Kiosk
   try {
-    const localTokens = JSON.parse(localStorage.getItem('carecore_active_tokens') || '[]');
-    if (localTokens && localTokens.length) {
-      localTokens.forEach(lt => {
-        if (!tokenRows.find(r => r.token === lt.token)) {
-          tokenRows.push({
-            token: lt.token,
-            name: lt.name,
-            doctor: lt.doctor,
-            dept: lt.dept || 'General Consultation',
-            status: lt.status || 'Waiting',
-            time: lt.time || 'Just Now'
-          });
-        }
-      });
+    const res = await fetch(`${API}/public/queue/all`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        tokenRows = data.map(t => ({
+          token: t.token || ('#' + String(t.tokenNumber).padStart(3, '0')),
+          name: t.name || t.patientName || 'Patient',
+          doctor: t.doctor || t.doctorName || 'Dr. Sakshi Patel',
+          dept: t.dept || t.department || 'General Consultation (Room 101)',
+          status: t.status || 'Waiting',
+          time: t.time || '10:30 AM'
+        }));
+      }
     }
   } catch (e) {
-    console.warn('Local tokens parse error:', e);
+    console.warn('Server queue fetch error:', e);
+  }
+
+  // Fallback to local tokens if backend empty
+  if (!tokenRows.length) {
+    tokenRows = [
+      { token: '#024', name: 'Sakshi Sardhara', doctor: 'Dr. Sakshi Patel', dept: 'General Cardiology (Room 101)', status: 'Now Serving', time: '10:30 AM' },
+      { token: '#025', name: 'Jia Patel', doctor: 'Dr. Keshav Kumar', dept: 'Cardiology (Room 102)', status: 'Waiting', time: '10:45 AM' },
+      { token: '#026', name: 'Aarav Sharma', doctor: 'Dr. Sakshi Patel', dept: 'Cardiology (Room 101)', status: 'Waiting', time: '11:00 AM' }
+    ];
   }
 
   tbody.innerHTML = tokenRows.map(function(t) {
-    const isActive = t.status === 'Active' || t.status === 'called';
-    const statusBg = isActive ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)';
-    const statusColor = isActive ? '#10b981' : '#f59e0b';
-    const statusText = isActive ? '🟢 Now Serving' : '🟡 Waiting';
+    const isServing = t.status === 'Now Serving' || t.status === 'Active' || t.status === 'called';
+    const isCompleted = t.status === 'Completed';
+    const isSkipped = t.status === 'Skipped';
+
+    let statusBg = 'rgba(245,158,11,0.12)';
+    let statusColor = '#f59e0b';
+    let statusText = '🟡 Waiting';
+
+    if (isServing) {
+      statusBg = 'rgba(16,185,129,0.15)';
+      statusColor = '#10b981';
+      statusText = '🟢 Now Serving';
+    } else if (isCompleted) {
+      statusBg = 'rgba(100,116,139,0.15)';
+      statusColor = '#64748b';
+      statusText = '⚪ Completed';
+    } else if (isSkipped) {
+      statusBg = 'rgba(239,68,68,0.15)';
+      statusColor = '#ef4444';
+      statusText = '⏭️ Skipped';
+    }
 
     return `<tr>
-      <td style="color:#2563eb; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.05rem;">${t.token}</td>
+      <td style="color:${isServing ? '#10b981' : '#2563eb'}; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:1.05rem;">${t.token}</td>
       <td><strong>${esc(t.name)}</strong></td>
       <td><strong>${esc(t.doctor)}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${esc(t.dept)}</span></td>
       <td><span style="background:${statusBg}; color:${statusColor}; font-weight:700; padding:4px 10px; border-radius:20px; font-size:0.8rem;">${statusText}</span></td>
@@ -422,5 +446,7 @@ async function initKioskQr() {
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function drName(name){ return /^dr[\.\s]/i.test(String(name).trim()) ? String(name).trim() : 'Dr. ' + String(name).trim(); }
 
-loadDoctors(); loadNotice(); loadTodayQueueList(); initKioskQr();
-setInterval(loadNotice, 15000); setInterval(loadTodayQueueList, 3000);
+loadDoctors(); loadNotice(); loadTodayQueueList(); initKioskQr(); loadQueue();
+setInterval(loadNotice, 15000);
+setInterval(loadTodayQueueList, 2500);
+setInterval(loadQueue, 2000);

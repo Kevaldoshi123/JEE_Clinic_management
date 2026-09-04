@@ -544,48 +544,17 @@
           <!-- Left: Live Queue Panel -->
           <div class="panel-card">
             <div class="panel-title">
-              <span>Today's Queue</span>
-              <i class="bi bi-arrow-repeat" style="cursor:pointer;" onclick="location.reload()"></i>
+              <span>Today's Queue <span id="queueWaitingBadge" style="background:rgba(245,158,11,0.15); color:#d97706; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; margin-left:4px;">2 Waiting</span></span>
+              <i class="bi bi-arrow-repeat" style="cursor:pointer;" onclick="loadDoctorQueue()" title="Refresh Queue"></i>
             </div>
+
+            <button id="callNextBtn" onclick="callNextWaitingPatient()" style="width:100%; margin-bottom:12px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:9px 12px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(16,185,129,0.25); transition:all 0.15s;">
+              <i class="bi bi-broadcast"></i> ⚡ Call Next Waiting Patient
+            </button>
+
             <div class="queue-list" id="queueListContainer">
-              <div class="queue-item active" id="queue-item-024" onclick="loadPatient('Sakshi Sardhara', 22, 'B+', 'Chest Pain Evaluation & Hypertension Review. Patient reports mild exertion fatigue.', '135/85 mmHg', '78 bpm', '165 mg/dL', 'SS', '024')">
-                <div class="queue-item-header">
-                  <span class="token-badge">#024</span>
-                  <span class="queue-status" style="color:var(--primary);">Active</span>
-                </div>
-                <div style="font-weight:600; font-size:13px;">Sakshi Sardhara</div>
-                <div class="queue-actions-row">
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Sakshi Sardhara', 22, 'B+', 'Chest Pain Evaluation & Hypertension Review.', '135/85 mmHg', '78 bpm', '165 mg/dL', 'SS', '024'); alert('Calling Token #024 (Sakshi Sardhara)')">Call</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #024')">Recall</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #024')">Skip</button>
-                </div>
-              </div>
-
-              <div class="queue-item" id="queue-item-025" onclick="loadPatient('Jia Patel', 25, 'A+', 'Routine Cardiology Consultation & Blood Pressure Check. Mild headache reported.', '118/75 mmHg', '72 bpm', '110 mg/dL', 'JP', '025')">
-                <div class="queue-item-header">
-                  <span class="token-badge">#025</span>
-                  <span class="queue-status" style="color:var(--warning);">Waiting</span>
-                </div>
-                <div style="font-weight:600; font-size:13px;">Jia Patel</div>
-                <div class="queue-actions-row">
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Jia Patel', 25, 'A+', 'Routine Cardiology Consultation.', '118/75 mmHg', '72 bpm', '110 mg/dL', 'JP', '025'); alert('Calling Token #025 (Jia Patel)')">Call</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #025')">Recall</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #025')">Skip</button>
-                </div>
-              </div>
-
-              <div class="queue-item" id="queue-item-026" onclick="loadPatient('Aarav Sharma', 28, 'O+', 'Lipid Profile & BP Check. Follow up for dietary modifications.', '125/80 mmHg', '80 bpm', '140 mg/dL', 'AS', '026')">
-                <div class="queue-item-header">
-                  <span class="token-badge">#026</span>
-                  <span class="queue-status" style="color:var(--warning);">Waiting</span>
-                </div>
-                <div style="font-weight:600; font-size:13px;">Aarav Sharma</div>
-                <div class="queue-actions-row">
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); loadPatient('Aarav Sharma', 28, 'O+', 'Lipid Profile & BP Check.', '125/80 mmHg', '80 bpm', '140 mg/dL', 'AS', '026'); alert('Calling Token #026 (Aarav Sharma)')">Call</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Recalling Token #026')">Recall</button>
-                  <button class="btn-action-xs" onclick="event.stopPropagation(); alert('Skipping Token #026')">Skip</button>
-                </div>
-              </div>
+              <!-- Dynamically populated by loadDoctorQueue() -->
+              <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Loading live clinic queue...</div>
             </div>
           </div>
 
@@ -623,7 +592,7 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:10px;">
               <button class="btn-main btn-main-outline" onclick="switchDoctorTab('view-records', document.getElementById('tab-records'))">📂 Open Full EHR History</button>
-              <button class="btn-main btn-main-primary" onclick="alert('Encounter Saved & Billed for ' + currentActivePatientName + '!')">Complete Consultation & Bill</button>
+              <button class="btn-main btn-main-primary" onclick="completeCurrentConsultation()">Complete Consultation & Bill</button>
             </div>
           </div>
 
@@ -797,9 +766,23 @@
 
   </main>
 
+  <!-- Live Doctor Notification Toast -->
+  <div id="docToast" style="position:fixed; bottom:24px; right:24px; background:#0f172a; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.25); display:none; z-index:99999; align-items:center; gap:10px; border-left:4px solid #10b981; transition:all 0.2s ease;"></div>
+
   <script>
     let currentActivePatientName = 'Sakshi Sardhara';
     let currentActiveToken = '024';
+    let doctorQueueData = [];
+
+    function showDocToast(msg, isErr = false) {
+      const t = document.getElementById('docToast');
+      if (!t) return;
+      t.innerHTML = `<i class="bi ${isErr ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}" style="color:${isErr ? '#ef4444' : '#10b981'}; font-size:16px;"></i> <span>${msg}</span>`;
+      t.style.borderLeftColor = isErr ? '#ef4444' : '#10b981';
+      t.style.display = 'flex';
+      clearTimeout(window._docToastTimer);
+      window._docToastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
 
     // Tab View Switcher
     function switchDoctorTab(viewId, element) {
@@ -822,7 +805,7 @@
     // Dynamic Patient Synchronization across Encounter & Consultation Desk
     function loadPatient(name, age, blood, symptoms, bp, hr, sugar, initials, token) {
       currentActivePatientName = name;
-      currentActiveToken = token || '024';
+      currentActiveToken = token ? String(token).replace('#', '').padStart(3, '0') : '024';
 
       // Update Center Encounter Details
       const nameEl = document.getElementById('patient-name');
@@ -837,7 +820,7 @@
       if (bloodEl) bloodEl.textContent = blood;
       if (tokenEl) tokenEl.textContent = '#' + currentActiveToken;
       if (symptomsEl) symptomsEl.value = symptoms;
-      if (avEl) avEl.textContent = initials || name.split(' ').map(n => n[0]).join('');
+      if (avEl) avEl.textContent = initials || (name ? name.split(' ').map(n => n[0]).join('') : 'PT');
 
       // Update Vitals
       const bpEl = document.getElementById('patient-bp');
@@ -853,9 +836,170 @@
 
       // Update Active Highlight on Queue List
       document.querySelectorAll('.queue-item').forEach(item => item.classList.remove('active'));
-      const activeQueueItem = document.getElementById('queue-item-' + currentActiveToken);
+      const activeQueueItem = document.getElementById('queue-item-' + parseInt(currentActiveToken));
       if (activeQueueItem) activeQueueItem.classList.add('active');
     }
+
+    // Load Live Queue from Backend API
+    async function loadDoctorQueue() {
+      const container = document.getElementById('queueListContainer');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/public/queue/all');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            doctorQueueData = data;
+            renderDoctorQueue(data);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Doctor queue fetch error, using local fallback:', e);
+      }
+
+      // Fallback defaults if fetch failed or empty
+      if (!doctorQueueData.length) {
+        doctorQueueData = [
+          { token: '#024', tokenNumber: 24, name: 'Sakshi Sardhara', age: 22, blood: 'B+', bp: '135/85 mmHg', hr: '78 bpm', sugar: '165 mg/dL', complaint: 'Chest Pain Evaluation & Hypertension Review. Patient reports mild exertion fatigue.', initials: 'SS', status: 'Now Serving' },
+          { token: '#025', tokenNumber: 25, name: 'Jia Patel', age: 25, blood: 'A+', bp: '118/75 mmHg', hr: '72 bpm', sugar: '110 mg/dL', complaint: 'Routine Cardiology Consultation & Blood Pressure Check. Mild headache reported.', initials: 'JP', status: 'Waiting' },
+          { token: '#026', tokenNumber: 26, name: 'Aarav Sharma', age: 28, blood: 'O+', bp: '125/80 mmHg', hr: '80 bpm', sugar: '140 mg/dL', complaint: 'Lipid Profile & BP Check. Follow up for dietary modifications.', initials: 'AS', status: 'Waiting' }
+        ];
+        renderDoctorQueue(doctorQueueData);
+      }
+    }
+
+    // Render Queue Items with Action Buttons
+    function renderDoctorQueue(list) {
+      const container = document.getElementById('queueListContainer');
+      if (!container) return;
+
+      const waitingCount = list.filter(t => t.status === 'Waiting').length;
+      const badge = document.getElementById('queueWaitingBadge');
+      if (badge) badge.textContent = `${waitingCount} Waiting`;
+
+      container.innerHTML = list.map(t => {
+        const rawNum = t.tokenNumber || parseInt(String(t.token).replace('#','')) || 0;
+        const tokenStr = t.token || ('#' + String(rawNum).padStart(3, '0'));
+        const isNowServing = t.status === 'Now Serving' || t.status === 'Active';
+        const isWaiting = t.status === 'Waiting';
+        const isCompleted = t.status === 'Completed';
+        const isSkipped = t.status === 'Skipped';
+
+        let statusStyle = 'color:var(--text-muted); font-size:11px; font-weight:600;';
+        let statusLabel = t.status;
+        let borderStyle = '';
+
+        if (isNowServing) {
+          statusStyle = 'color:#10b981; font-weight:700; font-size:11px;';
+          statusLabel = '🟢 Now Serving';
+          borderStyle = 'border-color:#10b981; background:rgba(16,185,129,0.05);';
+        } else if (isWaiting) {
+          statusStyle = 'color:#d97706; font-weight:700; font-size:11px;';
+          statusLabel = '🟡 Waiting';
+        } else if (isCompleted) {
+          statusStyle = 'color:#64748b; font-size:11px;';
+          statusLabel = '⚪ Done';
+          borderStyle = 'opacity:0.65;';
+        } else if (isSkipped) {
+          statusStyle = 'color:#ef4444; font-size:11px;';
+          statusLabel = '⏭️ Skipped';
+          borderStyle = 'opacity:0.65;';
+        }
+
+        const itemActive = (rawNum === parseInt(currentActiveToken)) ? 'active' : '';
+
+        return `
+          <div class="queue-item ${itemActive}" id="queue-item-${rawNum}" style="${borderStyle}" onclick="selectPatientByToken(${rawNum})">
+            <div class="queue-item-header">
+              <span class="token-badge">${tokenStr}</span>
+              <span class="queue-status" style="${statusStyle}">${statusLabel}</span>
+            </div>
+            <div style="font-weight:600; font-size:13px; margin: 3px 0;">${t.name || t.patientName || 'Patient'}</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">${t.dept || 'General OPD'} • ${t.time || ''}</div>
+            <div class="queue-actions-row">
+              <button class="btn-action-xs" style="background:#2563eb; color:white;" onclick="event.stopPropagation(); executeDoctorAction('call', ${rawNum})" title="Call to desk & broadcast live on TV display">📞 Call</button>
+              <button class="btn-action-xs" style="background:#f1f5f9; color:#334155;" onclick="event.stopPropagation(); executeDoctorAction('skip', ${rawNum})" title="Skip patient">⏭️ Skip</button>
+              <button class="btn-action-xs" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;" onclick="event.stopPropagation(); executeDoctorAction('complete', ${rawNum})" title="Mark completed">✔️ Done</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectPatientByToken(rawNum) {
+      const p = doctorQueueData.find(item => (item.tokenNumber === rawNum || parseInt(String(item.token).replace('#','')) === rawNum));
+      if (!p) return;
+      const initials = p.initials || (p.name ? p.name.split(' ').map(n=>n[0]).join('') : 'PT');
+      loadPatient(
+        p.name || 'Patient',
+        p.age || 25,
+        p.blood || 'B+',
+        p.complaint || p.symptoms || 'General OPD Consultation',
+        p.bp || '120/80 mmHg',
+        p.hr || '74 bpm',
+        p.sugar || '110 mg/dL',
+        initials,
+        String(rawNum).padStart(3, '0')
+      );
+    }
+
+    // Execute Doctor Queue Action: Call, Skip, Complete
+    async function executeDoctorAction(action, rawNum) {
+      selectPatientByToken(rawNum);
+
+      try {
+        const res = await fetch('/api/public/queue/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action, tokenNumber: rawNum })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const actStr = action === 'call' ? 'Called to Desk' : (action === 'complete' ? 'Completed' : 'Skipped');
+          showDocToast(`Token #${String(rawNum).padStart(3, '0')} (${data.name || ''}) — ${actStr}!`);
+          loadDoctorQueue();
+        } else {
+          showDocToast(data.message || 'Action processed');
+          loadDoctorQueue();
+        }
+      } catch (err) {
+        console.error('Action error:', err);
+        showDocToast(`Action executed locally on Token #${rawNum}`);
+      }
+    }
+
+    // Call Next Waiting Patient
+    async function callNextWaitingPatient() {
+      const nextWaiting = doctorQueueData.find(t => t.status === 'Waiting');
+      if (!nextWaiting) {
+        showDocToast('No patients currently in the waiting queue!', true);
+        return;
+      }
+      const rawNum = nextWaiting.tokenNumber || parseInt(String(nextWaiting.token).replace('#','')) || 0;
+      await executeDoctorAction('call', rawNum);
+    }
+
+    // Complete Current Consultation and Advance Queue
+    async function completeCurrentConsultation() {
+      const rawNum = parseInt(currentActiveToken) || 24;
+      await executeDoctorAction('complete', rawNum);
+      showDocToast(`Consultation completed for ${currentActivePatientName}!`);
+      
+      setTimeout(() => {
+        const nextWaiting = doctorQueueData.find(t => t.status === 'Waiting');
+        if (nextWaiting) {
+          if (confirm(`Consultation completed! Would you like to call the next waiting patient (${nextWaiting.name}, ${nextWaiting.token})?`)) {
+            callNextWaitingPatient();
+          }
+        }
+      }, 500);
+    }
+
+    // Initial load and periodic polling every 3.5 seconds
+    loadDoctorQueue();
+    setInterval(loadDoctorQueue, 3500);
   </script>
   <script src="ai-widget.js"></script>
   <script src="global-nav.js"></script>
